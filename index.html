@@ -872,27 +872,21 @@
       scene.add(plane);
     }
 
-    /* Uniforme inspirado no modelo oficial divulgado pela Rede Estadual do ES:
-       azul escuro predominante, detalhes rosa e branco */
     function makeOfficialUniformTexture(front = true) {
       const canvas = document.createElement("canvas");
       canvas.width = 1024;
       canvas.height = 1024;
       const ctx = canvas.getContext("2d");
 
-      // base azul escuro
       ctx.fillStyle = "#1f3559";
       ctx.fillRect(0, 0, 1024, 1024);
 
-      // faixa branca superior
       ctx.fillStyle = "#f8fafc";
       ctx.fillRect(0, 70, 1024, 150);
 
-      // filete rosa
       ctx.fillStyle = "#f472b6";
       ctx.fillRect(0, 220, 1024, 18);
 
-      // gola
       ctx.fillStyle = "#1f3559";
       ctx.beginPath();
       ctx.moveTo(512, 40);
@@ -901,7 +895,6 @@
       ctx.closePath();
       ctx.fill();
 
-      // pequeno símbolo/brasão estilizado
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.arc(175, 145, 48, 0, Math.PI * 2);
@@ -913,7 +906,6 @@
       ctx.textBaseline = "middle";
       ctx.fillText("ES", 175, 145);
 
-      // detalhe geométrico moderno
       ctx.strokeStyle = "rgba(255,255,255,0.07)";
       ctx.lineWidth = 4;
       for (let y = 280; y < 980; y += 56) {
@@ -925,11 +917,13 @@
 
       if (!front) {
         ctx.fillStyle = "#f8fafc";
-        ctx.fillRect(250, 96, 524, 66);
+        ctx.fillRect(180, 92, 664, 74);
+
         ctx.fillStyle = "#1f3559";
-        ctx.font = "bold 34px Arial";
+        ctx.font = "bold 38px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("REDE ESTADUAL ES", 512, 129);
+        ctx.textBaseline = "middle";
+        ctx.fillText("CÂNDIDO PORTINARE", 512, 129);
       }
 
       const texture = new THREE.CanvasTexture(canvas);
@@ -946,12 +940,12 @@
       const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
 
       const torsoMats = [
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // right
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // left
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // top
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // bottom
-        new THREE.MeshStandardMaterial({ map: frontTexture, roughness: 0.72, metalness: 0.03 }), // front
-        new THREE.MeshStandardMaterial({ map: backTexture || frontTexture, roughness: 0.72, metalness: 0.03 }) // back
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }),
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }),
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }),
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }),
+        new THREE.MeshStandardMaterial({ map: frontTexture, roughness: 0.72, metalness: 0.03 }),
+        new THREE.MeshStandardMaterial({ map: backTexture || frontTexture, roughness: 0.72, metalness: 0.03 })
       ];
 
       const hipGroup = new THREE.Group();

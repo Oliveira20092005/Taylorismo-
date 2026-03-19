@@ -2,1000 +2,904 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Fábrica Científica 3D — Taylorismo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Fábrica do Taylorismo 3D</title>
   <style>
-    * { box-sizing: border-box; }
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.86);
+      --panel-2: rgba(30, 41, 59, 0.92);
+      --text: #f8fafc;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --warn: #f59e0b;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body {
       margin: 0;
       width: 100%;
       height: 100%;
       overflow: hidden;
       font-family: Arial, Helvetica, sans-serif;
-      background: #0b1020;
-      color: #fff;
+      background: #020617;
+      color: var(--text);
+      touch-action: none;
     }
-
-    #app {
-      position: relative;
-      width: 100%;
-      height: 100%;
+    #game {
+      position: fixed;
+      inset: 0;
     }
-
-    canvas {
-      display: block;
-    }
-
     .hud {
-      position: absolute;
-      top: 14px;
-      left: 14px;
-      width: min(360px, calc(100% - 28px));
-      background: rgba(8, 12, 24, 0.82);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 18px;
-      padding: 14px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-      z-index: 10;
-    }
-
-    .hud h1 {
-      margin: 0 0 10px;
-      font-size: 1.2rem;
-    }
-
-    .subtitle {
-      margin: 0 0 12px;
-      color: #cbd5e1;
-      font-size: 0.92rem;
-      line-height: 1.5;
-    }
-
-    .row-top {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      right: 10px;
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      z-index: 20;
+      pointer-events: none;
+    }
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 10px 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+    .panel h1, .panel h2, .panel p { margin: 0; }
+    .title { font-size: 18px; font-weight: 800; }
+    .small { font-size: 12px; opacity: 0.88; line-height: 1.35; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
       gap: 8px;
-      margin-bottom: 12px;
+      font-size: 13px;
     }
-
-    .mini {
-      background: rgba(255,255,255,0.05);
+    .badge {
+      background: rgba(255,255,255,0.08);
       border-radius: 12px;
-      padding: 10px;
+      padding: 7px 8px;
       text-align: center;
-      border: 1px solid rgba(255,255,255,0.08);
+      font-weight: 700;
     }
-
-    .mini span {
-      display: block;
-      color: #cbd5e1;
-      font-size: 0.78rem;
-    }
-
-    .mini strong {
-      display: block;
-      margin-top: 4px;
-      font-size: 1.1rem;
-    }
-
-    .stat {
-      margin-bottom: 10px;
-    }
-
-    .stat-head {
+    .highlight { color: var(--accent); }
+    .controls {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
       display: flex;
       justify-content: space-between;
-      margin-bottom: 6px;
-      font-size: 0.92rem;
+      align-items: end;
+      padding: 14px;
+      z-index: 30;
+      pointer-events: none;
     }
-
-    .bar {
+    .joystick-zone, .actions {
+      pointer-events: auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .joystick-base {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.12);
+      position: relative;
+      touch-action: none;
+    }
+    .joystick-knob {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      background: rgba(56,189,248,0.9);
+      position: absolute;
+      left: 36px;
+      top: 36px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    .btn {
+      border: 0;
+      color: white;
+      font-weight: 800;
+      border-radius: 16px;
+      padding: 14px 16px;
+      min-width: 90px;
+      min-height: 58px;
+      background: rgba(56,189,248,0.25);
+      border: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      font-size: 14px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.25);
+    }
+    .btn:active { transform: scale(0.97); }
+    #interactBtn { background: rgba(34,197,94,0.28); }
+    #cameraBtn { background: rgba(245,158,11,0.28); }
+    .center-card, .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(2,6,23,0.62);
+    }
+    .modal {
+      width: min(680px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: var(--panel-2);
+      border-radius: 22px;
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 18px;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.45);
+    }
+    .modal h2 { margin: 0 0 10px; font-size: 24px; }
+    .modal p { line-height: 1.5; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .option {
+      width: 100%;
+      text-align: left;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+    }
+    .option:active { transform: scale(0.99); }
+    .success { color: #4ade80; font-weight: 800; }
+    .error { color: #f87171; font-weight: 800; }
+    .hidden { display: none !important; }
+    .footer-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .footer-row .btn { pointer-events: auto; }
+    #crosshair {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 15;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.7);
+      box-shadow: 0 0 0 2px rgba(0,0,0,0.25) inset;
+      pointer-events: none;
+    }
+    .progress {
+      width: 100%;
       height: 10px;
       background: rgba(255,255,255,0.08);
       border-radius: 999px;
       overflow: hidden;
+      margin-top: 8px;
     }
-
-    .fill {
+    .bar {
       height: 100%;
-      width: 50%;
-      border-radius: inherit;
-      transition: width .3s ease;
+      width: 0%;
+      background: linear-gradient(90deg, #38bdf8, #22c55e);
+      transition: width .25s ease;
     }
-
-    .good { background: linear-gradient(90deg, #10b981, #34d399); }
-    .mid { background: linear-gradient(90deg, #f59e0b, #facc15); }
-    .bad { background: linear-gradient(90deg, #ef4444, #fb7185); }
-
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 12px;
-    }
-
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 10px 12px;
-      cursor: pointer;
-      font-weight: bold;
-      background: #38bdf8;
-      color: #04111c;
-    }
-
-    button.secondary {
-      background: #1e293b;
-      color: #fff;
-    }
-
-    .hint {
-      margin-top: 10px;
-      color: #cbd5e1;
-      font-size: 0.85rem;
-      line-height: 1.5;
-    }
-
-    .logPanel {
-      position: absolute;
-      right: 14px;
-      top: 14px;
-      width: min(360px, calc(100% - 28px));
-      max-height: calc(100vh - 28px);
-      overflow: auto;
-      z-index: 10;
-      background: rgba(8, 12, 24, 0.82);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 18px;
-      padding: 14px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
-    }
-
-    .logPanel h2 {
-      margin: 0 0 10px;
-      font-size: 1rem;
-    }
-
-    .log {
-      display: grid;
-      gap: 8px;
-    }
-
-    .entry {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px;
-      padding: 10px;
-      color: #e2e8f0;
-      line-height: 1.45;
-      font-size: 0.92rem;
-    }
-
-    .entry strong {
-      color: #fff;
-    }
-
-    .bottomCenter {
-      position: absolute;
-      left: 50%;
-      bottom: 16px;
-      transform: translateX(-50%);
-      z-index: 10;
-      background: rgba(8, 12, 24, 0.82);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 14px;
-      padding: 10px 14px;
-      color: #e2e8f0;
-      font-size: 0.92rem;
-      text-align: center;
-      max-width: calc(100% - 28px);
-    }
-
-    .overlay {
-      position: absolute;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 20;
-      background: rgba(0,0,0,0.55);
-      padding: 20px;
-    }
-
-    .overlay.active {
-      display: flex;
-    }
-
-    .modal {
-      width: min(760px, 100%);
-      max-height: 90vh;
-      overflow: auto;
-      background: #0f172a;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 22px;
-      padding: 22px;
-      box-shadow: 0 18px 45px rgba(0,0,0,0.4);
-    }
-
-    .modal h2 {
-      margin-top: 0;
-    }
-
-    .modal p, .modal li {
-      color: #cbd5e1;
-      line-height: 1.65;
-    }
-
-    .quizAnswers {
-      display: grid;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .quizAnswers button {
-      text-align: left;
-      background: #1e293b;
-      color: white;
-    }
-
-    @media (max-width: 900px) {
-      .logPanel {
-        width: calc(100% - 28px);
-        top: auto;
-        bottom: 80px;
-        right: 14px;
-        max-height: 220px;
-      }
+    @media (max-width: 700px) {
+      .hud { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .panel { padding: 10px; }
+      .title { font-size: 16px; }
+      .joystick-base { width: 112px; height: 112px; }
+      .joystick-knob { width: 52px; height: 52px; left: 30px; top: 30px; }
+      .btn { min-width: 78px; min-height: 54px; }
     }
   </style>
 </head>
 <body>
-  <div id="app">
-    <div class="hud">
-      <h1>Fábrica Científica 3D</h1>
-      <p class="subtitle">
-        Gerencie uma fábrica inspirada no taylorismo. Clique nas máquinas para aplicar ações e mantenha equilíbrio entre produtividade e condições de trabalho.
+  <div id="game"></div>
+  <div id="crosshair"></div>
+
+  <div class="hud">
+    <div class="panel">
+      <h1 class="title">Fábrica do Taylorismo 3D</h1>
+      <p class="small">Ande pela fábrica, cumpra tarefas e responda perguntas para aprender os princípios do taylorismo.</p>
+      <div class="progress"><div id="progressBar" class="bar"></div></div>
+    </div>
+    <div class="panel stats">
+      <div class="badge">Pontos<br><span id="score" class="highlight">0</span></div>
+      <div class="badge">Tempo<br><span id="time">120</span>s</div>
+      <div class="badge">Tarefas<br><span id="tasks">0/5</span></div>
+      <div class="badge">Eficiência<br><span id="efficiency">100%</span></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <div class="joystick-zone">
+      <div id="joystick" class="joystick-base">
+        <div id="knob" class="joystick-knob"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="cameraBtn" class="btn">Câmera</button>
+      <button id="interactBtn" class="btn">Interagir</button>
+    </div>
+  </div>
+
+  <div id="startOverlay" class="overlay">
+    <div class="modal">
+      <h2>Missão: organizar a produção</h2>
+      <p>
+        Você é o gerente de uma fábrica no início do século XX. Seu objetivo é aplicar ideias do
+        <strong>taylorismo</strong>: divisão de tarefas, padronização, medição do tempo e aumento da eficiência.
       </p>
-
-      <div class="row-top">
-        <div class="mini"><span>Semana</span><strong id="week">1</strong></div>
-        <div class="mini"><span>Rodadas</span><strong id="turns">12</strong></div>
-        <div class="mini"><span>Status</span><strong id="status">Equilíbrio</strong></div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-head"><span>Produção</span><strong id="productionValue">50</strong></div>
-        <div class="bar"><div id="productionBar" class="fill mid"></div></div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-head"><span>Eficiência</span><strong id="efficiencyValue">50</strong></div>
-        <div class="bar"><div id="efficiencyBar" class="fill mid"></div></div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-head"><span>Qualidade</span><strong id="qualityValue">55</strong></div>
-        <div class="bar"><div id="qualityBar" class="fill good"></div></div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-head"><span>Moral</span><strong id="moraleValue">60</strong></div>
-        <div class="bar"><div id="moraleBar" class="fill good"></div></div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-head"><span>Fadiga</span><strong id="fatigueValue">25</strong></div>
-        <div class="bar"><div id="fatigueBar" class="fill mid"></div></div>
-      </div>
-
-      <div class="row-top" style="margin-top:12px;">
-        <div class="mini"><span>Lucro</span><strong id="profitValue">1000</strong></div>
-        <div class="mini"><span>Pontuação</span><strong id="scoreValue">0</strong></div>
-        <div class="mini"><span>Quiz</span><strong id="quizHitsValue">0</strong></div>
-      </div>
-
-      <div class="buttons">
-        <button id="restartBtn">Reiniciar</button>
-        <button id="helpBtn" class="secondary">Como jogar</button>
-      </div>
-
-      <div class="hint">
-        Ações nas máquinas:
-        <br>1 = Estudo de tempos
-        <br>2 = Padronização
-        <br>3 = Treinamento
-        <br>4 = Bônus por produção
-        <br>5 = Supervisão rígida
-        <br>6 = Pausas humanas
+      <p>
+        <strong>Como jogar:</strong> use o joystick para andar, arraste na tela para olhar ao redor, aperte <strong>Interagir</strong>
+        perto das estações brilhantes e responda corretamente às perguntas.
+      </p>
+      <p>
+        <strong>Objetivo:</strong> completar 5 estações antes do tempo acabar.
+      </p>
+      <div class="footer-row">
+        <button id="startBtn" class="btn">Começar</button>
       </div>
     </div>
+  </div>
 
-    <div class="logPanel">
-      <h2>Registro da direção</h2>
-      <div id="log" class="log"></div>
+  <div id="quizOverlay" class="center-card hidden">
+    <div class="modal">
+      <h2 id="quizTitle">Estação</h2>
+      <p id="quizText"></p>
+      <div id="options" class="grid-2"></div>
+      <p id="quizFeedback" class="small"></p>
     </div>
+  </div>
 
-    <div class="bottomCenter">
-      Use o mouse para girar a câmera. Role para zoom. Clique em uma máquina para agir.
-    </div>
-
-    <div class="overlay" id="overlay">
-      <div class="modal" id="modal"></div>
+  <div id="endOverlay" class="overlay hidden">
+    <div class="modal">
+      <h2 id="endTitle">Fim de jogo</h2>
+      <p id="endText"></p>
+      <div class="footer-row">
+        <button id="restartBtn" class="btn">Jogar de novo</button>
+      </div>
     </div>
   </div>
 
   <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import * as THREE from 'https://unpkg.com/three@0.161.0/build/three.module.js';
 
-    const state = {
-      week: 1,
-      maxWeeks: 12,
-      production: 50,
-      efficiency: 50,
-      quality: 55,
-      morale: 60,
-      fatigue: 25,
-      profit: 1000,
-      score: 0,
-      quizHits: 0,
-      bestScore: Number(localStorage.getItem('best_taylor_3d') || 0),
-      gameOver: false,
-      usedQuestions: []
+    const gameEl = document.getElementById('game');
+    const scoreEl = document.getElementById('score');
+    const timeEl = document.getElementById('time');
+    const tasksEl = document.getElementById('tasks');
+    const efficiencyEl = document.getElementById('efficiency');
+    const progressBar = document.getElementById('progressBar');
+    const startOverlay = document.getElementById('startOverlay');
+    const quizOverlay = document.getElementById('quizOverlay');
+    const endOverlay = document.getElementById('endOverlay');
+    const quizTitle = document.getElementById('quizTitle');
+    const quizText = document.getElementById('quizText');
+    const optionsEl = document.getElementById('options');
+    const quizFeedback = document.getElementById('quizFeedback');
+    const endTitle = document.getElementById('endTitle');
+    const endText = document.getElementById('endText');
+    const interactBtn = document.getElementById('interactBtn');
+    const cameraBtn = document.getElementById('cameraBtn');
+    const joystick = document.getElementById('joystick');
+    const knob = document.getElementById('knob');
+
+    let scene, camera, renderer, clock;
+    let player;
+    let tasks = [];
+    let running = false;
+    let lookActive = false;
+    let cameraMode = 0;
+    let timeLeft = 120;
+    let score = 0;
+    let completed = 0;
+    let efficiency = 100;
+    let currentTask = null;
+    let moveInput = { x: 0, y: 0 };
+    let yaw = Math.PI;
+    let pitch = -0.2;
+    let touchLookId = null;
+    let lastLook = { x: 0, y: 0 };
+
+    const playerState = {
+      pos: new THREE.Vector3(0, 1.6, 12),
+      radius: 0.65,
+      speed: 5.5,
     };
 
-    const questions = [
+    const colliders = [];
+
+    const taskData = [
       {
-        q: 'Qual é a ideia central do taylorismo?',
+        title: 'Cronometragem',
+        prompt: 'No taylorismo, por que o tempo de cada tarefa era medido?',
         options: [
-          'Organizar o trabalho de forma científica para aumentar a produtividade',
-          'Acabar com a divisão de tarefas',
-          'Eliminar a supervisão',
-          'Substituir fábricas por oficinas artesanais'
+          'Para descobrir a forma mais rápida e padronizada de executar o trabalho',
+          'Para diminuir a produção da fábrica',
+          'Para acabar com as máquinas',
+          'Para os operários descansarem mais'
         ],
-        correct: 0,
-        explanation: 'O taylorismo busca organizar o trabalho cientificamente para elevar a eficiência.'
+        answer: 0,
+        success: 'Certo. A administração científica buscava o método mais eficiente para cada tarefa.',
+        fail: 'Não foi dessa vez. O foco era encontrar o método mais eficiente e padronizado.'
       },
       {
-        q: 'O estudo de tempos e movimentos procurava:',
+        title: 'Divisão do Trabalho',
+        prompt: 'Qual é uma característica forte do taylorismo?',
         options: [
-          'Aumentar pausas sem planejamento',
-          'Descobrir o modo mais eficiente de executar uma tarefa',
-          'Diminuir a produção',
-          'Eliminar máquinas'
+          'Cada trabalhador faz um pouco de tudo',
+          'Os operários definem livremente o próprio ritmo',
+          'As tarefas são divididas em etapas simples e repetitivas',
+          'A produção é totalmente artesanal'
         ],
-        correct: 1,
-        explanation: 'Essa técnica mede e padroniza o método considerado mais eficiente.'
+        answer: 2,
+        success: 'Boa. O taylorismo separa o trabalho em pequenas etapas especializadas.',
+        fail: 'Resposta incorreta. No taylorismo, o trabalho é dividido em etapas simples e repetitivas.'
       },
       {
-        q: 'Uma crítica frequente ao taylorismo é:',
+        title: 'Padronização',
+        prompt: 'O que a padronização procura garantir dentro da fábrica?',
         options: [
-          'Produzir liberdade total na linha de montagem',
-          'Tornar o trabalho repetitivo e desgastante',
-          'Aumentar a criatividade artesanal',
-          'Reduzir a organização do trabalho'
+          'Que cada pessoa trabalhe de um jeito diferente',
+          'Que exista um método único e controlado de produção',
+          'Que a produção seja mais lenta',
+          'Que não haja supervisão'
         ],
-        correct: 1,
-        explanation: 'O trabalho excessivamente repetitivo pode gerar desgaste físico e mental.'
+        answer: 1,
+        success: 'Exatamente. A padronização cria regras, métodos e movimentos definidos.',
+        fail: 'Errado. A padronização busca um método único e controlado de produção.'
       },
       {
-        q: 'No modelo taylorista, a administração tende a:',
+        title: 'Produtividade',
+        prompt: 'Qual era o principal objetivo do taylorismo?',
         options: [
-          'Planejar e controlar as tarefas',
-          'Ignorar metas',
-          'Deixar toda a organização sem método',
-          'Eliminar a gerência'
+          'Aumentar a eficiência e a produtividade',
+          'Reduzir a organização do trabalho',
+          'Eliminar a administração',
+          'Substituir toda a indústria por artesanato'
         ],
-        correct: 0,
-        explanation: 'O planejamento e o controle são concentrados na administração.'
+        answer: 0,
+        success: 'Perfeito. O objetivo era produzir mais em menos tempo.',
+        fail: 'Não. O principal objetivo era aumentar a eficiência e a produtividade.'
+      },
+      {
+        title: 'Supervisão',
+        prompt: 'No modelo taylorista, qual é o papel da gerência?',
+        options: [
+          'Planejar e controlar como o trabalho deve ser executado',
+          'Não interferir em nada',
+          'Trocar as máquinas por trabalho manual',
+          'Acabar com a divisão de tarefas'
+        ],
+        answer: 0,
+        success: 'Isso aí. A gerência planeja, controla e fiscaliza os processos.',
+        fail: 'Incorreto. A gerência tem papel central de planejamento e controle.'
       }
     ];
 
-    const actions = {
-      1: {
-        name: 'Estudo de tempos e movimentos',
-        desc: 'Você mediu tarefas e ajustou a sequência da linha.',
-        effect: { production: 10, efficiency: 12, fatigue: 8, morale: -6, quality: -2, profit: 180 }
-      },
-      2: {
-        name: 'Padronização das ferramentas',
-        desc: 'Você padronizou métodos e instrumentos de trabalho.',
-        effect: { production: 6, efficiency: 7, fatigue: 2, morale: -1, quality: 9, profit: 120 }
-      },
-      3: {
-        name: 'Treinamento técnico',
-        desc: 'Você treinou a equipe para executar o método com menos erros.',
-        effect: { production: 5, efficiency: 6, fatigue: -2, morale: 6, quality: 10, profit: 90 }
-      },
-      4: {
-        name: 'Bônus por produtividade',
-        desc: 'Você criou incentivo por meta batida.',
-        effect: { production: 12, efficiency: 5, fatigue: 7, morale: -3, quality: -2, profit: 210 }
-      },
-      5: {
-        name: 'Supervisão rígida',
-        desc: 'Você intensificou a cobrança e o controle do trabalho.',
-        effect: { production: 7, efficiency: 10, fatigue: 10, morale: -10, quality: -1, profit: 150 }
-      },
-      6: {
-        name: 'Pausas e reorganização humana',
-        desc: 'Você desacelerou o ritmo para recuperar trabalhadores.',
-        effect: { production: -4, efficiency: -2, fatigue: -14, morale: 14, quality: 6, profit: -40 }
-      }
-    };
+    init();
+    animate();
 
-    const app = document.getElementById('app');
-    const overlay = document.getElementById('overlay');
-    const modal = document.getElementById('modal');
-    const logEl = document.getElementById('log');
+    function init() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0b1020);
+      scene.fog = new THREE.Fog(0x0b1020, 18, 60);
 
-    const ui = {
-      week: document.getElementById('week'),
-      turns: document.getElementById('turns'),
-      status: document.getElementById('status'),
-      productionValue: document.getElementById('productionValue'),
-      efficiencyValue: document.getElementById('efficiencyValue'),
-      qualityValue: document.getElementById('qualityValue'),
-      moraleValue: document.getElementById('moraleValue'),
-      fatigueValue: document.getElementById('fatigueValue'),
-      profitValue: document.getElementById('profitValue'),
-      scoreValue: document.getElementById('scoreValue'),
-      quizHitsValue: document.getElementById('quizHitsValue'),
-      productionBar: document.getElementById('productionBar'),
-      efficiencyBar: document.getElementById('efficiencyBar'),
-      qualityBar: document.getElementById('qualityBar'),
-      moraleBar: document.getElementById('moraleBar'),
-      fatigueBar: document.getElementById('fatigueBar')
-    };
+      camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 120);
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      gameEl.appendChild(renderer.domElement);
+      clock = new THREE.Clock();
 
-    function clamp(n, min = 0, max = 100) {
-      return Math.max(min, Math.min(max, n));
+      const hemi = new THREE.HemisphereLight(0xbfe9ff, 0x1f2937, 1.3);
+      scene.add(hemi);
+
+      const sun = new THREE.DirectionalLight(0xffffff, 1.25);
+      sun.position.set(8, 18, 6);
+      sun.castShadow = true;
+      sun.shadow.mapSize.width = 2048;
+      sun.shadow.mapSize.height = 2048;
+      scene.add(sun);
+
+      buildFactory();
+      createPlayerMarker();
+      createTasks();
+      updateHUD();
+
+      window.addEventListener('resize', onResize);
+      interactBtn.addEventListener('click', tryInteract);
+      cameraBtn.addEventListener('click', toggleCamera);
+      document.getElementById('startBtn').addEventListener('click', startGame);
+      document.getElementById('restartBtn').addEventListener('click', restartGame);
+
+      setupJoystick();
+      setupLookControls();
     }
 
-    function addLog(title, text) {
-      const div = document.createElement('div');
-      div.className = 'entry';
-      div.innerHTML = `<strong>${title}</strong><br>${text}`;
-      logEl.prepend(div);
-    }
-
-    function fillClass(value, inverse = false) {
-      const real = inverse ? 100 - value : value;
-      if (real >= 67) return 'fill good';
-      if (real >= 34) return 'fill mid';
-      return 'fill bad';
-    }
-
-    function statusText() {
-      if (state.fatigue > 80 || state.morale < 20 || state.quality < 20) return 'Crise';
-      if (state.production > 75 && state.quality > 60 && state.morale > 45) return 'Excelente';
-      if (state.production > 65 || state.efficiency > 65) return 'Alta pressão';
-      return 'Equilíbrio';
-    }
-
-    function updateUI() {
-      ui.week.textContent = state.week;
-      ui.turns.textContent = Math.max(0, state.maxWeeks - state.week + 1);
-      ui.status.textContent = statusText();
-      ui.productionValue.textContent = state.production;
-      ui.efficiencyValue.textContent = state.efficiency;
-      ui.qualityValue.textContent = state.quality;
-      ui.moraleValue.textContent = state.morale;
-      ui.fatigueValue.textContent = state.fatigue;
-      ui.profitValue.textContent = state.profit;
-      ui.scoreValue.textContent = state.score;
-      ui.quizHitsValue.textContent = state.quizHits;
-
-      ui.productionBar.style.width = state.production + '%';
-      ui.efficiencyBar.style.width = state.efficiency + '%';
-      ui.qualityBar.style.width = state.quality + '%';
-      ui.moraleBar.style.width = state.morale + '%';
-      ui.fatigueBar.style.width = state.fatigue + '%';
-
-      ui.productionBar.className = fillClass(state.production);
-      ui.efficiencyBar.className = fillClass(state.efficiency);
-      ui.qualityBar.className = fillClass(state.quality);
-      ui.moraleBar.className = fillClass(state.morale);
-      ui.fatigueBar.className = fillClass(state.fatigue, true);
-    }
-
-    function openModal(html) {
-      modal.innerHTML = html;
-      overlay.classList.add('active');
-    }
-
-    function closeModal() {
-      overlay.classList.remove('active');
-    }
-
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) closeModal();
-    });
-
-    document.getElementById('helpBtn').addEventListener('click', () => {
-      openModal(`
-        <h2>Como jogar</h2>
-        <p>Você administra a fábrica por 12 semanas. Clique nas máquinas para aplicar ações de gestão inspiradas no taylorismo.</p>
-        <ul>
-          <li><strong>Produção:</strong> quantidade produzida</li>
-          <li><strong>Eficiência:</strong> velocidade e organização</li>
-          <li><strong>Qualidade:</strong> padrão do produto</li>
-          <li><strong>Moral:</strong> motivação dos trabalhadores</li>
-          <li><strong>Fadiga:</strong> desgaste acumulado</li>
-        </ul>
-        <p>O objetivo é mostrar que o taylorismo pode elevar o desempenho, mas também criar repetição, pressão e desgaste humano.</p>
-        <button onclick="document.getElementById('overlay').classList.remove('active')">Fechar</button>
-      `);
-    });
-
-    document.getElementById('restartBtn').addEventListener('click', resetGame);
-
-    // THREE.JS
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x6d7a87);
-    scene.fog = new THREE.Fog(0x6d7a87, 30, 120);
-
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 300);
-    camera.position.set(0, 18, 34);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    app.appendChild(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.target.set(0, 4, 0);
-    controls.enableDamping = true;
-    controls.maxPolarAngle = Math.PI / 2.15;
-    controls.minDistance = 12;
-    controls.maxDistance = 60;
-
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x2a2a2a, 1.1);
-    scene.add(hemiLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.8);
-    dirLight.position.set(18, 30, 12);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.camera.left = -60;
-    dirLight.shadow.camera.right = 60;
-    dirLight.shadow.camera.top = 60;
-    dirLight.shadow.camera.bottom = -60;
-    scene.add(dirLight);
-
-    const floorGeo = new THREE.PlaneGeometry(120, 120);
-    const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x7b7b7b,
-      roughness: 0.92,
-      metalness: 0.08
-    });
-    const floor = new THREE.Mesh(floorGeo, floorMat);
-    floor.rotation.x = -Math.PI / 2;
-    floor.receiveShadow = true;
-    scene.add(floor);
-
-    function createWall(w, h, d, x, y, z, color = 0xc7c1b7) {
-      const geo = new THREE.BoxGeometry(w, h, d);
-      const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.95 });
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.set(x, y, z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      scene.add(mesh);
-      return mesh;
-    }
-
-    createWall(120, 18, 1, 0, 9, -35, 0xc7c1b7);
-    createWall(1, 18, 70, -50, 9, 0, 0xbcb4a8);
-    createWall(1, 18, 70, 50, 9, 0, 0xbcb4a8);
-
-    const columns = [];
-    for (let x = -36; x <= 36; x += 18) {
-      for (let z = -18; z <= 18; z += 18) {
-        const col = new THREE.Mesh(
-          new THREE.CylinderGeometry(1, 1, 18, 18),
-          new THREE.MeshStandardMaterial({ color: 0xbababa, roughness: 0.8 })
-        );
-        col.position.set(x, 9, z);
-        col.castShadow = true;
-        col.receiveShadow = true;
-        scene.add(col);
-        columns.push(col);
-      }
-    }
-
-    const machineObjects = [];
-    const workerObjects = [];
-
-    function createMachine(x, z, index) {
-      const group = new THREE.Group();
-
-      const base = new THREE.Mesh(
-        new THREE.BoxGeometry(4.5, 1.2, 2.6),
-        new THREE.MeshStandardMaterial({ color: 0x3d434c, metalness: 0.55, roughness: 0.45 })
+    function buildFactory() {
+      const floor = new THREE.Mesh(
+        new THREE.BoxGeometry(40, 1, 40),
+        new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.9 })
       );
-      base.position.y = 0.6;
+      floor.position.y = -0.5;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const lineMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, emissive: 0x111111 });
+      for (let i = -16; i <= 16; i += 8) {
+        const lane = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.03, 28), lineMat);
+        lane.position.set(i, 0.02, 0);
+        scene.add(lane);
+      }
+
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.95 });
+      const walls = [
+        [0, 4, -20, 40, 8, 1],
+        [0, 4, 20, 40, 8, 1],
+        [-20, 4, 0, 1, 8, 40],
+        [20, 4, 0, 1, 8, 40]
+      ];
+      walls.forEach(([x, y, z, w, h, d]) => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+        m.position.set(x, y, z);
+        m.castShadow = true;
+        m.receiveShadow = true;
+        scene.add(m);
+        colliders.push(new THREE.Box3().setFromObject(m));
+      });
+
+      for (let z = -12; z <= 12; z += 8) {
+        addMachine(-10, z);
+        addMachine(10, z);
+        addDesk(0, z);
+      }
+
+      addSign();
+      addConveyor();
+    }
+
+    function addMachine(x, z) {
+      const group = new THREE.Group();
+      const base = new THREE.Mesh(
+        new THREE.BoxGeometry(3.2, 2.4, 2.6),
+        new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.25, roughness: 0.75 })
+      );
+      base.position.y = 1.2;
       base.castShadow = true;
       base.receiveShadow = true;
       group.add(base);
 
       const top = new THREE.Mesh(
-        new THREE.BoxGeometry(2.2, 1.8, 1.6),
-        new THREE.MeshStandardMaterial({ color: 0x5c646f, metalness: 0.4, roughness: 0.4 })
+        new THREE.BoxGeometry(1.5, 0.6, 1.6),
+        new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.35, roughness: 0.5 })
       );
-      top.position.set(-0.4, 1.95, 0);
+      top.position.set(0, 2.7, 0);
       top.castShadow = true;
       group.add(top);
 
-      const wheel = new THREE.Mesh(
-        new THREE.TorusGeometry(0.85, 0.18, 16, 40),
-        new THREE.MeshStandardMaterial({ color: 0x20242a, metalness: 0.8, roughness: 0.28 })
+      const lamp = new THREE.Mesh(
+        new THREE.SphereGeometry(0.18, 18, 18),
+        new THREE.MeshStandardMaterial({ color: 0xfff7cc, emissive: 0xf59e0b, emissiveIntensity: 1.2 })
       );
-      wheel.rotation.y = Math.PI / 2;
-      wheel.position.set(1.8, 1.1, 0);
-      wheel.castShadow = true;
-      group.add(wheel);
-
-      const axle = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.12, 0.12, 2.2, 16),
-        new THREE.MeshStandardMaterial({ color: 0x1f2937, metalness: 0.8, roughness: 0.25 })
-      );
-      axle.rotation.z = Math.PI / 2;
-      axle.position.set(1.8, 1.1, 0);
-      axle.castShadow = true;
-      group.add(axle);
-
-      const belt = new THREE.Mesh(
-        new THREE.BoxGeometry(0.15, 1.8, 0.15),
-        new THREE.MeshStandardMaterial({ color: 0x111827 })
-      );
-      belt.position.set(0.4, 2.2, 0.7);
-      group.add(belt);
+      lamp.position.set(1, 2.3, 1.1);
+      group.add(lamp);
 
       group.position.set(x, 0, z);
-      group.userData = { type: 'machine', index, actionId: (index % 6) + 1 };
       scene.add(group);
-      machineObjects.push(group);
-
-      return { group, wheel };
+      colliders.push(new THREE.Box3().setFromObject(group));
     }
 
-    function createWorker(x, z) {
+    function addDesk(x, z) {
       const group = new THREE.Group();
-
-      const body = new THREE.Mesh(
-        new THREE.CapsuleGeometry(0.7, 1.5, 4, 10),
-        new THREE.MeshStandardMaterial({ color: 0xd4c4b2, roughness: 0.95 })
+      const table = new THREE.Mesh(
+        new THREE.BoxGeometry(2.2, 0.25, 1.4),
+        new THREE.MeshStandardMaterial({ color: 0x8b5e3c, roughness: 0.85 })
       );
-      body.position.y = 2.1;
-      body.castShadow = true;
-      group.add(body);
+      table.position.y = 1.2;
+      table.castShadow = true;
+      group.add(table);
 
-      const head = new THREE.Mesh(
-        new THREE.SphereGeometry(0.52, 18, 18),
-        new THREE.MeshStandardMaterial({ color: 0xe5c7aa, roughness: 0.95 })
-      );
-      head.position.y = 3.45;
-      head.castShadow = true;
-      group.add(head);
-
-      const hair = new THREE.Mesh(
-        new THREE.SphereGeometry(0.54, 16, 16, 0, Math.PI * 2, 0, Math.PI / 1.8),
-        new THREE.MeshStandardMaterial({ color: 0x2f241c, roughness: 1 })
-      );
-      hair.position.y = 3.55;
-      hair.castShadow = true;
-      group.add(hair);
-
+      for (const dx of [-0.85, 0.85]) {
+        for (const dz of [-0.45, 0.45]) {
+          const leg = new THREE.Mesh(
+            new THREE.BoxGeometry(0.15, 1.2, 0.15),
+            new THREE.MeshStandardMaterial({ color: 0x6b4423 })
+          );
+          leg.position.set(dx, 0.6, dz);
+          leg.castShadow = true;
+          group.add(leg);
+        }
+      }
       group.position.set(x, 0, z);
       scene.add(group);
-      workerObjects.push(group);
-      return group;
+      colliders.push(new THREE.Box3().setFromObject(group));
     }
 
-    const animatedParts = [];
+    function addSign() {
+      const sign = makeTextBoard('ADMINISTRAÇÃO\nCIENTÍFICA');
+      sign.position.set(0, 4.4, -18.7);
+      scene.add(sign);
+    }
 
-    let idx = 0;
-    for (let row = -18; row <= 18; row += 9) {
-      for (let col = -24; col <= 24; col += 10) {
-        const machineX = col;
-        const machineZ = row;
-        const machine = createMachine(machineX, machineZ, idx);
-        createWorker(machineX - 3.2, machineZ + 0.2);
-        animatedParts.push(machine);
-        idx++;
+    function addConveyor() {
+      const belt = new THREE.Mesh(
+        new THREE.BoxGeometry(8, 0.4, 2),
+        new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.75, metalness: 0.15 })
+      );
+      belt.position.set(0, 0.35, -2);
+      belt.receiveShadow = true;
+      scene.add(belt);
+      colliders.push(new THREE.Box3().setFromObject(belt));
+
+      for (let i = -3; i <= 3; i += 1.5) {
+        const box = new THREE.Mesh(
+          new THREE.BoxGeometry(0.9, 0.9, 0.9),
+          new THREE.MeshStandardMaterial({ color: 0x7c3aed, roughness: 0.65 })
+        );
+        box.position.set(i, 1, -2);
+        box.castShadow = true;
+        scene.add(box);
       }
     }
 
-    function createCeilingLamps() {
-      for (let x = -30; x <= 30; x += 15) {
-        for (let z = -20; z <= 20; z += 20) {
-          const bulb = new THREE.Mesh(
-            new THREE.SphereGeometry(0.6, 16, 16),
-            new THREE.MeshStandardMaterial({ color: 0xfff4c7, emissive: 0xffd977, emissiveIntensity: 0.7 })
-          );
-          bulb.position.set(x, 15, z);
-          scene.add(bulb);
-
-          const pLight = new THREE.PointLight(0xffe9b3, 0.8, 22, 2);
-          pLight.position.set(x, 15, z);
-          scene.add(pLight);
-        }
-      }
-    }
-    createCeilingLamps();
-
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
-    function applyEffect(effect) {
-      state.production = clamp(state.production + (effect.production || 0));
-      state.efficiency = clamp(state.efficiency + (effect.efficiency || 0));
-      state.quality = clamp(state.quality + (effect.quality || 0));
-      state.morale = clamp(state.morale + (effect.morale || 0));
-      state.fatigue = clamp(state.fatigue + (effect.fatigue || 0));
-      state.profit = Math.max(0, state.profit + (effect.profit || 0));
+    function makeTextBoard(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(12, 12, canvas.width - 24, canvas.height - 24);
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = 'bold 48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const lines = text.split('\n');
+      lines.forEach((line, i) => ctx.fillText(line, canvas.width / 2, 90 + i * 60));
+      const tex = new THREE.CanvasTexture(canvas);
+      const mat = new THREE.MeshBasicMaterial({ map: tex });
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(7, 3.5), mat);
+      return mesh;
     }
 
-    function passiveAdjustments() {
-      const pressure = Math.floor((state.production + state.efficiency) / 35);
-      state.fatigue = clamp(state.fatigue + pressure);
-
-      if (state.fatigue > 70) {
-        state.morale = clamp(state.morale - 6);
-        state.quality = clamp(state.quality - 5);
-      }
-      if (state.morale < 30) {
-        state.efficiency = clamp(state.efficiency - 4);
-      }
-      if (state.quality > 75) {
-        state.profit += 60;
-      }
-
-      const weeklyGain = Math.round((state.production * 4 + state.efficiency * 3 + state.quality * 2 - state.fatigue * 2 + state.morale) / 8);
-      state.score = Math.max(0, state.score + weeklyGain);
+    function createPlayerMarker() {
+      player = new THREE.Object3D();
+      scene.add(player);
     }
 
-    function randomEvent() {
-      const events = [
-        {
-          title: 'Evento: desgaste mecânico',
-          text: 'Uma máquina sofreu com uso excessivo e a qualidade caiu.',
-          effect: { quality: -6, profit: -70 }
-        },
-        {
-          title: 'Evento: aprendizagem da equipe',
-          text: 'O treinamento reduziu erros e aumentou o padrão do produto.',
-          effect: { quality: 6, morale: 4, profit: 40 }
-        },
-        {
-          title: 'Evento: clima tenso',
-          text: 'A pressão subiu e houve aumento de fadiga.',
-          effect: { fatigue: 8, morale: -6, production: 3 }
-        },
-        {
-          title: 'Evento: melhor arranjo da linha',
-          text: 'A reorganização do espaço reduziu deslocamentos.',
-          effect: { efficiency: 5, production: 4, profit: 65 }
-        }
+    function createTasks() {
+      const positions = [
+        new THREE.Vector3(-14, 0.8, -10),
+        new THREE.Vector3(14, 0.8, -10),
+        new THREE.Vector3(-14, 0.8, 8),
+        new THREE.Vector3(14, 0.8, 8),
+        new THREE.Vector3(0, 0.8, 14)
       ];
 
-      const ev = events[Math.floor(Math.random() * events.length)];
-      applyEffect(ev.effect);
-      addLog(ev.title, ev.text);
-    }
+      tasks = taskData.map((data, i) => {
+        const group = new THREE.Group();
+        const pillar = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.45, 0.6, 1.6, 18),
+          new THREE.MeshStandardMaterial({ color: 0x0ea5e9, emissive: 0x0ea5e9, emissiveIntensity: 0.45 })
+        );
+        pillar.position.y = 0.8;
+        pillar.castShadow = true;
+        group.add(pillar);
 
-    function maybeQuiz() {
-      if (![4, 8, 11].includes(state.week)) return;
-      const available = questions.filter((_, i) => !state.usedQuestions.includes(i));
-      const q = available.length ? available[Math.floor(Math.random() * available.length)] : questions[Math.floor(Math.random() * questions.length)];
-      state.usedQuestions.push(questions.indexOf(q));
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(0.8, 0.12, 12, 30),
+          new THREE.MeshStandardMaterial({ color: 0x22c55e, emissive: 0x22c55e, emissiveIntensity: 0.65 })
+        );
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = 1.8;
+        group.add(ring);
 
-      openModal(`
-        <h2>Desafio histórico</h2>
-        <p>${q.q}</p>
-        <div class="quizAnswers">
-          ${q.options.map((opt, i) => `<button data-answer="${i}">${opt}</button>`).join('')}
-        </div>
-      `);
+        const board = makeSmallLabel(data.title);
+        board.position.y = 2.9;
+        group.add(board);
 
-      modal.querySelectorAll('[data-answer]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const choice = Number(btn.dataset.answer);
-          if (choice === q.correct) {
-            state.quizHits += 1;
-            state.score += 120;
-            applyEffect({ morale: 4, quality: 4, profit: 50 });
-            addLog('Quiz acertado', q.explanation);
-          } else {
-            applyEffect({ morale: -2, quality: -1 });
-            addLog('Quiz respondido', `${q.explanation} Resposta correta: ${q.options[q.correct]}.`);
-          }
-          updateUI();
-          closeModal();
-          checkEnd();
-        });
+        group.position.copy(positions[i]);
+        scene.add(group);
+
+        return {
+          ...data,
+          group,
+          ring,
+          done: false,
+          baseY: positions[i].y
+        };
       });
     }
 
-    function endGame(title, msg) {
-      state.gameOver = true;
-      if (state.score > state.bestScore) {
-        state.bestScore = state.score;
-        localStorage.setItem('best_taylor_3d', String(state.bestScore));
-      }
-
-      openModal(`
-        <h2>${title}</h2>
-        <p>${msg}</p>
-        <p><strong>Resumo:</strong><br>
-        Produção: ${state.production}<br>
-        Eficiência: ${state.efficiency}<br>
-        Qualidade: ${state.quality}<br>
-        Moral: ${state.morale}<br>
-        Fadiga: ${state.fatigue}<br>
-        Lucro: ${state.profit}<br>
-        Pontuação: ${state.score}</p>
-        <button id="playAgainBtn">Jogar novamente</button>
-      `);
-
-      document.getElementById('playAgainBtn').addEventListener('click', () => {
-        closeModal();
-        resetGame();
-      });
+    function makeSmallLabel(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 96;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'rgba(15,23,42,0.95)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = '#22c55e';
+      ctx.lineWidth = 6;
+      ctx.strokeRect(6, 6, canvas.width - 12, canvas.height - 12);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      const tex = new THREE.CanvasTexture(canvas);
+      return new THREE.Mesh(new THREE.PlaneGeometry(3.2, 1.2), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
     }
 
-    function checkEnd() {
-      if (state.fatigue >= 100) {
-        endGame('Colapso da linha', 'A fadiga chegou ao limite e a fábrica não conseguiu manter o ritmo.');
-        return true;
-      }
-      if (state.morale <= 0) {
-        endGame('Ruptura social', 'A moral zerou e os trabalhadores interromperam a produção.');
-        return true;
-      }
-      if (state.quality <= 0) {
-        endGame('Falha total de qualidade', 'O padrão da produção despencou e a fábrica perdeu credibilidade.');
-        return true;
-      }
-      if (state.week > state.maxWeeks) {
-        let verdict = 'Você terminou a simulação com resultado intermediário.';
-        if (state.production > 75 && state.quality > 55 && state.morale > 40) {
-          verdict = 'Você encontrou um equilíbrio forte entre eficiência e qualidade.';
-        } else if (state.production > 80 && state.morale < 35) {
-          verdict = 'Você priorizou produção alta, mas sacrificou as condições humanas.';
-        } else if (state.morale > 60 && state.production < 55) {
-          verdict = 'Você protegeu melhor os trabalhadores, mas a produção ficou abaixo do esperado.';
+    function setupJoystick() {
+      let activeId = null;
+      const center = () => {
+        moveInput.x = 0;
+        moveInput.y = 0;
+        knob.style.left = '30px';
+        knob.style.top = '30px';
+        if (window.innerWidth > 700) {
+          knob.style.left = '36px';
+          knob.style.top = '36px';
         }
-        endGame('Fim da simulação', verdict);
-        return true;
+      };
+      center();
+
+      const handle = (clientX, clientY) => {
+        const rect = joystick.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        let dx = clientX - cx;
+        let dy = clientY - cy;
+        const max = rect.width * 0.28;
+        const len = Math.hypot(dx, dy) || 1;
+        if (len > max) {
+          dx = dx / len * max;
+          dy = dy / len * max;
+        }
+        moveInput.x = dx / max;
+        moveInput.y = dy / max;
+        knob.style.left = `${rect.width / 2 - knob.offsetWidth / 2 + dx}px`;
+        knob.style.top = `${rect.height / 2 - knob.offsetHeight / 2 + dy}px`;
+      };
+
+      joystick.addEventListener('pointerdown', (e) => {
+        activeId = e.pointerId;
+        joystick.setPointerCapture(activeId);
+        handle(e.clientX, e.clientY);
+      });
+      joystick.addEventListener('pointermove', (e) => {
+        if (e.pointerId !== activeId) return;
+        handle(e.clientX, e.clientY);
+      });
+      joystick.addEventListener('pointerup', (e) => {
+        if (e.pointerId !== activeId) return;
+        activeId = null;
+        center();
+      });
+      joystick.addEventListener('pointercancel', center);
+    }
+
+    function setupLookControls() {
+      renderer.domElement.addEventListener('pointerdown', (e) => {
+        const joyRect = joystick.getBoundingClientRect();
+        const onJoy = e.clientX >= joyRect.left && e.clientX <= joyRect.right && e.clientY >= joyRect.top && e.clientY <= joyRect.bottom;
+        if (onJoy) return;
+        touchLookId = e.pointerId;
+        lastLook.x = e.clientX;
+        lastLook.y = e.clientY;
+        lookActive = true;
+      });
+
+      renderer.domElement.addEventListener('pointermove', (e) => {
+        if (!lookActive || e.pointerId !== touchLookId || !running || currentTask) return;
+        const dx = e.clientX - lastLook.x;
+        const dy = e.clientY - lastLook.y;
+        lastLook.x = e.clientX;
+        lastLook.y = e.clientY;
+        yaw -= dx * 0.005;
+        pitch -= dy * 0.004;
+        pitch = Math.max(-1.1, Math.min(0.6, pitch));
+      });
+
+      const endLook = (e) => {
+        if (e.pointerId !== touchLookId) return;
+        lookActive = false;
+        touchLookId = null;
+      };
+      renderer.domElement.addEventListener('pointerup', endLook);
+      renderer.domElement.addEventListener('pointercancel', endLook);
+    }
+
+    function startGame() {
+      startOverlay.classList.add('hidden');
+      running = true;
+      clock.start();
+    }
+
+    function restartGame() {
+      score = 0;
+      completed = 0;
+      efficiency = 100;
+      timeLeft = 120;
+      currentTask = null;
+      playerState.pos.set(0, 1.6, 12);
+      yaw = Math.PI;
+      pitch = -0.2;
+      tasks.forEach((t) => {
+        t.done = false;
+        t.group.visible = true;
+        t.ring.material.emissiveIntensity = 0.65;
+      });
+      quizOverlay.classList.add('hidden');
+      endOverlay.classList.add('hidden');
+      running = true;
+      updateHUD();
+    }
+
+    function toggleCamera() {
+      cameraMode = (cameraMode + 1) % 2;
+    }
+
+    function tryInteract() {
+      if (!running || currentTask) return;
+      let nearest = null;
+      let bestDist = 2.4;
+      for (const task of tasks) {
+        if (task.done) continue;
+        const dist = task.group.position.distanceTo(playerState.pos);
+        if (dist < bestDist) {
+          bestDist = dist;
+          nearest = task;
+        }
+      }
+      if (nearest) openTask(nearest);
+    }
+
+    function openTask(task) {
+      currentTask = task;
+      quizTitle.textContent = task.title;
+      quizText.textContent = task.prompt;
+      quizFeedback.textContent = '';
+      optionsEl.innerHTML = '';
+      task.options.forEach((option, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'option';
+        btn.textContent = option;
+        btn.addEventListener('click', () => answerTask(index));
+        optionsEl.appendChild(btn);
+      });
+      quizOverlay.classList.remove('hidden');
+    }
+
+    function answerTask(choice) {
+      const task = currentTask;
+      if (!task) return;
+      const correct = choice === task.answer;
+      if (correct) {
+        score += 100;
+        completed += 1;
+        task.done = true;
+        task.group.visible = false;
+        quizFeedback.innerHTML = `<span class="success">${task.success}</span>`;
+      } else {
+        score = Math.max(0, score - 20);
+        efficiency = Math.max(40, efficiency - 10);
+        timeLeft = Math.max(0, timeLeft - 8);
+        quizFeedback.innerHTML = `<span class="error">${task.fail}</span>`;
+      }
+      updateHUD();
+      setTimeout(() => {
+        currentTask = null;
+        quizOverlay.classList.add('hidden');
+        if (completed >= tasks.length) finishGame(true);
+      }, 1200);
+    }
+
+    function finishGame(win) {
+      running = false;
+      endOverlay.classList.remove('hidden');
+      if (win) {
+        endTitle.textContent = 'Você venceu!';
+        endText.innerHTML = `Você concluiu todas as estações da fábrica.<br><br><strong>Pontuação:</strong> ${score}<br><strong>Eficiência final:</strong> ${efficiency}%<br><br>Resumo: o taylorismo buscava organizar a produção por meio da divisão de tarefas, padronização e controle do tempo.`;
+      } else {
+        endTitle.textContent = 'Tempo esgotado';
+        endText.innerHTML = `A produção não foi finalizada a tempo.<br><br><strong>Pontuação:</strong> ${score}<br><strong>Tarefas concluídas:</strong> ${completed}/${tasks.length}<br><br>Tente de novo para melhorar a eficiência da fábrica.`;
+      }
+    }
+
+    function updateHUD() {
+      scoreEl.textContent = score;
+      timeEl.textContent = Math.ceil(timeLeft);
+      tasksEl.textContent = `${completed}/${tasks.length}`;
+      efficiencyEl.textContent = `${efficiency}%`;
+      progressBar.style.width = `${(completed / tasks.length) * 100}%`;
+    }
+
+    function onResize() {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth, innerHeight);
+    }
+
+    function movePlayer(dt) {
+      const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+      const right = new THREE.Vector3(forward.z, 0, -forward.x);
+      const move = new THREE.Vector3();
+      move.addScaledVector(right, moveInput.x);
+      move.addScaledVector(forward, -moveInput.y);
+
+      if (move.lengthSq() > 0.0001) {
+        move.normalize().multiplyScalar(playerState.speed * dt);
+        const next = playerState.pos.clone().add(move);
+        if (!hitsWall(next)) playerState.pos.copy(next);
+      }
+    }
+
+    function hitsWall(pos) {
+      if (Math.abs(pos.x) > 18.5 || Math.abs(pos.z) > 18.5) return true;
+      const sphere = new THREE.Sphere(pos, playerState.radius);
+      for (const box of colliders) {
+        if (box.intersectsSphere(sphere)) return true;
       }
       return false;
     }
 
-    function nextTurn(actionId) {
-      if (state.gameOver) return;
-
-      const action = actions[actionId];
-      applyEffect(action.effect);
-      addLog(`Semana ${state.week}: ${action.name}`, action.desc);
-
-      if (Math.random() < 0.72) randomEvent();
-
-      passiveAdjustments();
-      state.week += 1;
-      updateUI();
-
-      if (!checkEnd()) {
-        maybeQuiz();
+    function updateCamera() {
+      if (cameraMode === 0) {
+        camera.position.copy(playerState.pos);
+      } else {
+        const back = new THREE.Vector3(-Math.sin(yaw), 0.35, -Math.cos(yaw)).normalize();
+        camera.position.copy(playerState.pos).addScaledVector(back, 4.5).add(new THREE.Vector3(0, 1.8, 0));
       }
+      const dir = new THREE.Vector3(
+        Math.sin(yaw) * Math.cos(pitch),
+        Math.sin(pitch),
+        Math.cos(yaw) * Math.cos(pitch)
+      );
+      camera.lookAt(camera.position.clone().add(dir));
     }
-
-    function resetGame() {
-      state.week = 1;
-      state.maxWeeks = 12;
-      state.production = 50;
-      state.efficiency = 50;
-      state.quality = 55;
-      state.morale = 60;
-      state.fatigue = 25;
-      state.profit = 1000;
-      state.score = 0;
-      state.quizHits = 0;
-      state.gameOver = false;
-      state.usedQuestions = [];
-      logEl.innerHTML = '';
-      addLog('Bem-vindo à fábrica', 'Clique nas máquinas e gerencie a produção com base em práticas do taylorismo.');
-      updateUI();
-    }
-
-    function onPointerDown(event) {
-      if (state.gameOver) return;
-
-      const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera);
-
-      const intersects = raycaster.intersectObjects(machineObjects, true);
-      if (!intersects.length) return;
-
-      let obj = intersects[0].object;
-      while (obj && !obj.userData.type) obj = obj.parent;
-      if (!obj || obj.userData.type !== 'machine') return;
-
-      const actionId = obj.userData.actionId;
-      const action = actions[actionId];
-
-      openModal(`
-        <h2>${action.name}</h2>
-        <p>${action.desc}</p>
-        <p><strong>Efeito esperado:</strong><br>
-        Produção: ${sign(action.effect.production)}<br>
-        Eficiência: ${sign(action.effect.efficiency)}<br>
-        Qualidade: ${sign(action.effect.quality)}<br>
-        Moral: ${sign(action.effect.morale)}<br>
-        Fadiga: ${sign(action.effect.fatigue)}<br>
-        Lucro: ${sign(action.effect.profit)}</p>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button id="applyActionBtn">Aplicar ação</button>
-          <button id="cancelActionBtn" class="secondary">Cancelar</button>
-        </div>
-      `);
-
-      document.getElementById('applyActionBtn').addEventListener('click', () => {
-        closeModal();
-        nextTurn(actionId);
-      });
-
-      document.getElementById('cancelActionBtn').addEventListener('click', closeModal);
-    }
-
-    function sign(n) {
-      return n > 0 ? '+' + n : String(n);
-    }
-
-    renderer.domElement.addEventListener('pointerdown', onPointerDown);
-
-    window.addEventListener('keydown', (e) => {
-      if (state.gameOver) return;
-      const n = Number(e.key);
-      if (actions[n]) nextTurn(n);
-    });
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    const clock = new THREE.Clock();
 
     function animate() {
       requestAnimationFrame(animate);
-      const t = clock.getElapsedTime();
+      const dt = Math.min(0.033, clock.getDelta());
 
-      animatedParts.forEach((item, i) => {
-        item.wheel.rotation.z = t * 3 + i * 0.2;
+      if (running && !currentTask) {
+        movePlayer(dt);
+        timeLeft -= dt;
+        if (timeLeft <= 0) {
+          timeLeft = 0;
+          updateHUD();
+          finishGame(false);
+        }
+      }
+
+      const t = performance.now() * 0.001;
+      tasks.forEach((task, i) => {
+        if (task.done) return;
+        task.group.position.y = task.baseY + Math.sin(t * 2 + i) * 0.12;
+        task.ring.rotation.z += 0.01;
       });
 
-      workerObjects.forEach((w, i) => {
-        w.position.y = Math.sin(t * 2 + i) * 0.03;
-        w.rotation.y = Math.sin(t + i * 0.2) * 0.06;
-      });
-
-      controls.update();
+      updateCamera();
+      updateHUD();
       renderer.render(scene, camera);
     }
-
-    resetGame();
-    animate();
   </script>
 </body>
 </html>

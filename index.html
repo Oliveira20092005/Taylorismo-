@@ -3,28 +3,26 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylorismo: Mechanical Age</title>
+    <title>Taylorismo: O Grande Galpão 1900</title>
     <style>
-        body { margin: 0; background: #0a0a0a; overflow: hidden; font-family: 'Georgia', serif; touch-action: none; }
-        #viewport { width: 100vw; height: 100vh; filter: sepia(0.3) contrast(1.2) brightness(0.85); }
-        #grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/stardust.png'); opacity: 0.12; pointer-events: none; z-index: 50; }
+        body { margin: 0; background: #222; overflow: hidden; font-family: 'Georgia', serif; touch-action: none; }
+        #viewport { width: 100vw; height: 100vh; filter: sepia(0.2) contrast(1.1); }
+        #grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/stardust.png'); opacity: 0.1; pointer-events: none; z-index: 50; }
         #ui { position: absolute; top: 0; width: 100%; text-align: center; color: #d4af37; pointer-events: none; z-index: 10; }
-        .hud-top { display: flex; justify-content: space-around; width: 100%; background: linear-gradient(to bottom, #2e2214, transparent); padding: 15px 0; border-bottom: 1px solid #5d4037; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #3d2b1f, #1a1510); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: #e2c08d; text-align: center; padding: 20px; border: 15px double #5d4037; box-sizing: border-box; }
-        button { padding: 15px 50px; font-size: 22px; cursor: pointer; background: #5d4037; color: #e2c08d; border: 3px double #d4af37; font-family: 'Georgia', serif; text-transform: uppercase; box-shadow: 5px 5px 15px rgba(0,0,0,0.5); }
-        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 110px; height: 110px; z-index: 20; opacity: 0.3; border: 2px solid #d4af37; border-radius: 50%; background: rgba(0,0,0,0.2); }
-        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 1px solid #d4af37; transform: translate(-50%, -50%); pointer-events: none; opacity: 0.6; }
+        .hud-top { display: flex; justify-content: space-around; width: 100%; background: linear-gradient(to bottom, rgba(46,34,20,0.9), transparent); padding: 15px 0; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1510; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: #e2c08d; text-align: center; padding: 20px; }
+        button { padding: 15px 50px; font-size: 22px; cursor: pointer; background: #8b5a2b; color: white; border: 2px solid #d4af37; text-transform: uppercase; font-family: serif; }
+        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 110px; height: 110px; z-index: 20; opacity: 0.5; border: 2px solid #d4af37; border-radius: 50%; }
+        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 1px solid #d4af37; transform: translate(-50%, -50%); pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="grain"></div>
     <div id="overlay">
-        <h1 style="letter-spacing: 5px;">MÁQUINA DO TEMPO TAYLOR</h1>
-        <p style="font-style: italic;">"A ciência deve substituir o palpite individual."</p>
-        <hr style="width: 200px; border: 1px solid #d4af37;">
-        <p>REQUISITO: Sincronize as 5 válvulas de pressão vermelhas.</p>
-        <button onclick="startApp()">Acionar Vapor</button>
+        <h1>GALPÃO INDUSTRIAL TAYLOR</h1>
+        <p>Ajuste o ritmo das máquinas para atingir a cota do dia.</p>
+        <button onclick="startApp()">Entrar no Galpão</button>
     </div>
 
     <div id="ui">
@@ -32,7 +30,6 @@
             <div id="score">PRODUÇÃO: 0</div>
             <div id="timer">TURNO: 60s</div>
         </div>
-        <p id="msg" style="color: #d4af37; font-size: 14px; margin-top: 5px;">Válvulas críticas: 5</p>
     </div>
 
     <div class="crosshair"></div>
@@ -49,104 +46,97 @@
         function startApp() {
             document.getElementById('overlay').style.display = 'none';
             init();
-            startTimer();
         }
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a1510);
-            scene.fog = new THREE.Fog(0x1a1510, 1, 35);
+            scene.background = new THREE.Color(0x332211);
+            scene.fog = new THREE.Fog(0x332211, 5, 60);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
             document.getElementById('viewport').appendChild(renderer.domElement);
 
-            // Luzes Quentes (Filamento)
-            const ambient = new THREE.AmbientLight(0x443322, 1.2);
+            // 1. ILUMINAÇÃO DE GALPÃO (MAIS CLARA)
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6); // Luz geral
             scene.add(ambient);
             
-            const lamp = new THREE.PointLight(0xffcc88, 2, 40);
-            lamp.position.set(0, 15, 0);
-            scene.add(lamp);
+            const mainLight = new THREE.DirectionalLight(0xffcc88, 1); // Luz do teto amarelada
+            mainLight.position.set(10, 20, 10);
+            scene.add(mainLight);
 
-            // Chão: Concreto Gasto
-            const floor = new THREE.Mesh(
-                new THREE.PlaneGeometry(100, 100),
-                new THREE.MeshStandardMaterial({ color: 0x221a15, roughness: 1 })
-            );
+            // 2. CONSTRUÇÃO DO GALPÃO (Paredes e Teto)
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x443322, roughness: 1 });
+            
+            // Chão de tijolos/pedra
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({color: 0x221a11}));
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // Criar Máquinas Complexas
+            // Paredes (Norte, Sul, Leste, Oeste)
+            const wallGeo = new THREE.PlaneGeometry(80, 20);
+            
+            const createWall = (z, x, rotY) => {
+                const w = new THREE.Mesh(wallGeo, wallMat);
+                w.position.set(x, 10, z);
+                w.rotation.y = rotY;
+                scene.add(w);
+            };
+
+            createWall(-40, 0, 0);          // Parede Fundo
+            createWall(40, 0, Math.PI);     // Parede Frente
+            createWall(0, -40, Math.PI/2);  // Parede Esquerda
+            createWall(0, 40, -Math.PI/2); // Parede Direita
+
+            // Vigas do Teto
+            const beamGeo = new THREE.BoxGeometry(80, 0.5, 0.5);
+            for(let i = -40; i <= 40; i += 10) {
+                const beam = new THREE.Mesh(beamGeo, new THREE.MeshStandardMaterial({color: 0x111111}));
+                beam.position.set(0, 18, i);
+                scene.add(beam);
+            }
+
+            // 3. MÁQUINAS PISTÃO COMPLEXAS
             for(let i=0; i<15; i++) {
-                createComplexPiston(i);
+                createMachine(i);
             }
 
             setupControls();
             animate();
+            startTimer();
         }
 
-        function createComplexPiston(id) {
+        function createMachine(id) {
             const group = new THREE.Group();
             
-            // 1. Base (Ferro Fundido)
-            const base = new THREE.Mesh(
-                new THREE.CylinderGeometry(1.2, 1.5, 0.8, 8),
-                new THREE.MeshStandardMaterial({color: 0x2a2a2a, metalness: 0.5})
-            );
+            // Base de Metal Pesado
+            const base = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1, 2.5), new THREE.MeshStandardMaterial({color: 0x1a1a1a}));
             group.add(base);
 
-            // 2. Camisa do Pistão (Cilindro Externo Detalhado)
-            const housing = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.8, 0.8, 3, 12),
-                new THREE.MeshStandardMaterial({color: 0x3d2b1f, roughness: 0.6})
-            );
-            housing.position.y = 1.8;
+            // Estrutura de Suporte (Pistão Externo)
+            const housing = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 4, 8), new THREE.MeshStandardMaterial({color: 0x2e2214, metalness: 0.5}));
+            housing.position.y = 2;
             group.add(housing);
 
-            // Anéis de Latão decorativos
-            for(let j=0; j<3; j++) {
-                const ring = new THREE.Mesh(
-                    new THREE.TorusGeometry(0.85, 0.05, 8, 24),
-                    new THREE.MeshStandardMaterial({color: 0x8b5a2b, metalness: 1})
-                );
-                ring.rotation.x = Math.PI/2;
-                ring.position.y = 1 + j;
-                group.add(ring);
-            }
-
-            // 3. O Pistão Móvel (Haste de Aço Polido)
-            const rod = new THREE.Mesh(
-                new THREE.CylinderGeometry(0.3, 0.3, 4, 8),
-                new THREE.MeshStandardMaterial({color: 0xaaaaaa, metalness: 1, roughness: 0.1})
-            );
-            
-            // 4. Cabeça do Pistão (Válvula)
+            // Pistão Móvel (Haste de Latão/Aço)
             const isTarget = id < 5;
-            const valve = new THREE.Mesh(
-                new THREE.SphereGeometry(0.7, 12, 12),
-                new THREE.MeshStandardMaterial({
-                    color: isTarget ? 0xcc0000 : 0x555555,
-                    emissive: isTarget ? 0x440000 : 0x000000,
-                    metalness: 0.8
-                })
-            );
-            valve.position.y = 2; // Relativo à haste
+            const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 5, 8), new THREE.MeshStandardMaterial({
+                color: isTarget ? 0xcc0000 : 0x8b5a2b,
+                metalness: 1,
+                roughness: 0.2
+            }));
             
-            const pistonSystem = new THREE.Group();
-            pistonSystem.add(rod);
-            pistonSystem.add(valve);
-            pistonSystem.position.y = 3;
+            const pistonGroup = new THREE.Group();
+            pistonGroup.add(piston);
+            pistonGroup.position.y = 4;
+            pistonGroup.userData = { id, broken: isTarget, initialY: 4 };
             
-            pistonSystem.userData = { id: id, broken: isTarget, initialY: 3 };
-            group.add(pistonSystem);
-
-            group.position.set((Math.random()-0.5)*40, 0.4, (Math.random()-0.5)*40);
+            group.add(pistonGroup);
+            group.position.set((Math.random()-0.5)*60, 0.5, (Math.random()-0.5)*60);
             scene.add(group);
-            machines.push(pistonSystem);
+            machines.push(pistonGroup);
         }
 
         function setupControls() {
@@ -159,7 +149,21 @@
 
             let lastX = 0, lastY = 0;
             window.addEventListener('touchstart', (e) => {
-                if (e.touches[0].clientX > window.innerWidth / 2) checkInteraction();
+                if (e.touches[0].clientX > window.innerWidth / 2) {
+                    const ray = new THREE.Raycaster();
+                    ray.setFromCamera(new THREE.Vector2(0, 0), camera);
+                    const hits = ray.intersectObjects(machines, true);
+                    if (hits.length > 0) {
+                        let obj = hits[0].object;
+                        while(obj.parent && !obj.userData.initialY) obj = obj.parent;
+                        if (obj.userData.broken) {
+                            obj.children[0].material.color.set(0x8b5a2b);
+                            obj.userData.broken = false;
+                            score += 100;
+                            document.getElementById('score').innerText = `PRODUÇÃO: ${score}`;
+                        }
+                    }
+                }
             });
 
             window.addEventListener('touchmove', (e) => {
@@ -176,34 +180,12 @@
             window.addEventListener('touchend', () => { lastX = 0; lastY = 0; });
         }
 
-        function checkInteraction() {
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            const intersects = raycaster.intersectObjects(machines, true);
-            if (intersects.length > 0) {
-                // Encontrar o grupo do pistão
-                let obj = intersects[0].object;
-                while(obj.parent && !obj.userData.initialY) obj = obj.parent;
-                
-                if (obj.userData.broken) {
-                    // Mudar cor da cabeça (filho do grupo)
-                    obj.children[1].material.color.set(0x8b5a2b);
-                    obj.children[1].material.emissive.set(0x000000);
-                    obj.userData.broken = false;
-                    targetsLeft--;
-                    score += 100;
-                    document.getElementById('score').innerText = `PRODUÇÃO: ${score}`;
-                    document.getElementById('msg').innerText = `Válvulas críticas: ${targetsLeft}`;
-                }
-            }
-        }
-
         function startTimer() {
             let time = 60;
             const t = setInterval(() => {
                 time--;
                 document.getElementById('timer').innerText = `TURNO: ${time}s`;
-                if (time <= 0) { clearInterval(t); alert("Fim do turno! Produção: " + score); location.reload(); }
+                if (time <= 0) { clearInterval(t); alert("Turno encerrado!"); location.reload(); }
             }, 1000);
         }
 
@@ -212,13 +194,12 @@
             camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
             const dir = new THREE.Vector3(moveR, 0, -moveF).applyQuaternion(camera.quaternion);
             dir.y = 0;
-            camera.position.addScaledVector(dir, 0.13);
+            camera.position.addScaledVector(dir, 0.15);
             camera.position.y = 1.7;
 
             machines.forEach((p, i) => {
-                const speed = p.userData.broken ? 0.01 : 0.004;
-                // Animação real de pistão (sobe e desce dentro da camisa)
-                p.position.y = p.userData.initialY + Math.sin(Date.now() * speed + i) * 1.2;
+                const s = p.userData.broken ? 0.01 : 0.004;
+                p.position.y = p.userData.initialY + Math.sin(Date.now() * s + i) * 1.5;
             });
             renderer.render(scene, camera);
         }

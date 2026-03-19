@@ -6,6 +6,7 @@
   <title>Fábrica Taylorista 3D</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -16,21 +17,19 @@
       touch-action: none;
     }
 
-    canvas {
-      display: block;
-    }
+    canvas { display: block; }
 
     #hud {
       position: fixed;
-      top: 14px;
-      left: 14px;
+      top: 12px;
+      left: 12px;
       z-index: 30;
-      width: min(350px, calc(100vw - 28px));
+      width: min(360px, calc(100vw - 24px));
       background: rgba(8, 15, 30, 0.84);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 18px;
       padding: 14px 16px;
-      backdrop-filter: blur(8px);
+      backdrop-filter: blur(10px);
       box-shadow: 0 12px 30px rgba(0,0,0,0.35);
     }
 
@@ -45,6 +44,17 @@
       font-size: 14px;
       line-height: 1.4;
       color: #e5e7eb;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(59,130,246,0.14);
+      border: 1px solid rgba(125,211,252,0.22);
+      color: #bfdbfe;
+      font-size: 12px;
+      margin-bottom: 10px;
     }
 
     #progress {
@@ -63,21 +73,10 @@
       transition: width 0.35s ease;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(59,130,246,0.14);
-      border: 1px solid rgba(125,211,252,0.22);
-      color: #bfdbfe;
-      font-size: 12px;
-      margin-bottom: 10px;
-    }
-
     #prompt {
       position: fixed;
       left: 50%;
-      bottom: 24px;
+      bottom: 20px;
       transform: translateX(-50%);
       z-index: 35;
       background: rgba(0,0,0,0.72);
@@ -126,9 +125,7 @@
       color: #e5e7eb;
     }
 
-    .card ul {
-      padding-left: 22px;
-    }
+    .card ul { padding-left: 22px; }
 
     .buttons {
       display: flex;
@@ -139,7 +136,7 @@
 
     button {
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 12px 16px;
       font-size: 15px;
       font-weight: bold;
@@ -152,8 +149,6 @@
     button:hover { transform: translateY(-1px); background: #1d4ed8; }
     .green { background: #16a34a; }
     .green:hover { background: #15803d; }
-    .secondary { background: #334155; }
-    .secondary:hover { background: #475569; }
 
     #quizOptions {
       display: grid;
@@ -167,9 +162,7 @@
       border: 1px solid rgba(255,255,255,0.12);
     }
 
-    .answerBtn:hover {
-      background: #334155;
-    }
+    .answerBtn:hover { background: #334155; }
 
     #quizFeedback {
       margin-top: 14px;
@@ -177,6 +170,7 @@
       font-weight: bold;
     }
 
+    /* MOBILE UI */
     #mobileUI {
       position: fixed;
       inset: 0;
@@ -187,7 +181,7 @@
     #leftZone, #rightZone {
       position: absolute;
       bottom: 0;
-      height: 44vh;
+      height: 50vh;
       pointer-events: auto;
     }
 
@@ -203,38 +197,38 @@
 
     #joystickBase {
       position: absolute;
-      left: 22px;
-      bottom: 22px;
-      width: 120px;
-      height: 120px;
+      left: 24px;
+      bottom: 24px;
+      width: 128px;
+      height: 128px;
       border-radius: 50%;
-      background: rgba(15,23,42,0.4);
+      background: rgba(15,23,42,0.45);
       border: 2px solid rgba(255,255,255,0.12);
       pointer-events: none;
       display: none;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(5px);
     }
 
     #joystickKnob {
       position: absolute;
-      width: 52px;
-      height: 52px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
-      background: rgba(125,211,252,0.9);
-      left: 34px;
-      top: 34px;
+      background: rgba(125,211,252,0.95);
+      left: 36px;
+      top: 36px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.35);
       pointer-events: none;
     }
 
     #touchHint {
       position: absolute;
-      right: 20px;
+      right: 16px;
       bottom: 26px;
-      background: rgba(15,23,42,0.45);
+      background: rgba(15,23,42,0.58);
       border: 1px solid rgba(255,255,255,0.08);
       color: #cbd5e1;
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 10px 12px;
       font-size: 13px;
       pointer-events: none;
@@ -243,15 +237,15 @@
 
     #interactBtn {
       position: absolute;
-      right: 22px;
-      bottom: 95px;
-      width: 74px;
-      height: 74px;
+      right: 20px;
+      bottom: 110px;
+      width: 82px;
+      height: 82px;
       border-radius: 50%;
-      background: rgba(34,197,94,0.88);
-      border: 2px solid rgba(255,255,255,0.15);
+      background: rgba(34,197,94,0.9);
+      border: 2px solid rgba(255,255,255,0.18);
       color: white;
-      font-size: 26px;
+      font-size: 28px;
       font-weight: bold;
       display: none;
       align-items: center;
@@ -260,29 +254,55 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.28);
     }
 
-    #crosshair {
-      position: fixed;
-      left: 50%;
-      top: 50%;
-      width: 8px;
-      height: 8px;
-      margin-left: -4px;
-      margin-top: -4px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.8);
-      box-shadow: 0 0 10px rgba(255,255,255,0.35);
-      z-index: 20;
+    #cameraLabel {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      background: rgba(15,23,42,0.55);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #dbeafe;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 12px;
       pointer-events: none;
+      backdrop-filter: blur(4px);
     }
 
-    @media (hover: none) and (pointer: coarse) {
-      #crosshair { display: none; }
+    #miniTips {
+      position: absolute;
+      left: 50%;
+      bottom: 110px;
+      transform: translateX(-50%);
+      background: rgba(15,23,42,0.58);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #dbeafe;
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 12px;
+      pointer-events: none;
+      backdrop-filter: blur(4px);
+      display: none;
     }
 
     @media (min-width: 900px) {
-      #touchHint {
-        display: none;
+      #touchHint, #cameraLabel, #miniTips {
+        display: none !important;
       }
+    }
+
+    @media (max-width: 700px) {
+      #hud {
+        width: calc(100vw - 20px);
+        left: 10px;
+        top: 10px;
+        padding: 12px;
+      }
+
+      #hud h1 { font-size: 18px; }
+      #hud p { font-size: 13px; }
+      .card { padding: 18px; }
+      .card h2 { font-size: 24px; }
+      .card p, .card li { font-size: 15px; }
     }
   </style>
 </head>
@@ -290,30 +310,25 @@
   <div id="hud">
     <div class="badge">Jogo educativo 3D em HTML</div>
     <h1>Fábrica Taylorista</h1>
-    <p><strong>Objetivo:</strong> explore a fábrica, estude as 4 estações e faça o quiz final.</p>
-    <p><strong>PC:</strong> WASD para andar, mouse para olhar, Shift para correr, E para interagir.</p>
-    <p><strong>Celular:</strong> joystick esquerdo para andar, arraste o lado direito para mexer a câmera, botão verde para interagir.</p>
+    <p><strong>Objetivo:</strong> explore a fábrica, visite as 4 estações e faça o quiz final.</p>
+    <p><strong>PC:</strong> WASD para andar, mouse para câmera 360°, Shift para correr, E para interagir.</p>
+    <p><strong>Celular:</strong> joystick esquerdo para andar, arraste o lado direito para girar a câmera 360°, botão verde para interagir.</p>
     <p id="statusText">Estações visitadas: 0/4</p>
     <div id="progress"><div id="progressFill"></div></div>
   </div>
 
-  <div id="crosshair"></div>
   <div id="prompt"></div>
 
   <div id="overlay" style="display:flex;">
     <div class="card">
       <h2>Bem-vindo à Fábrica Taylorista 3D</h2>
       <p>
-        Este jogo foi criado para explicar o <strong>Taylorismo</strong>, também conhecido como
-        <strong>Administração Científica</strong>, desenvolvido por <strong>Frederick Winslow Taylor</strong>.
+        Este jogo explica o <strong>Taylorismo</strong>, também chamado de
+        <strong>Administração Científica</strong>, criado por <strong>Frederick Winslow Taylor</strong>.
       </p>
       <p>
-        O Taylorismo foi um modelo de organização do trabalho que buscava aumentar a produtividade
-        por meio da <strong>divisão das tarefas</strong>, da <strong>padronização dos movimentos</strong>,
-        do <strong>controle do tempo</strong> e da <strong>supervisão constante</strong>.
-      </p>
-      <p>
-        Caminhe pela fábrica, visite as estações de aprendizagem e complete o quiz final.
+        Explore a fábrica em <strong>terceira pessoa</strong>, visite as estações de aprendizagem
+        e conclua o quiz final.
       </p>
       <div class="buttons">
         <button id="startBtn" class="green">Entrar na fábrica</button>
@@ -353,6 +368,8 @@
     </div>
 
     <div id="touchHint">Arraste aqui para mover a câmera</div>
+    <div id="cameraLabel">Câmera 360°</div>
+    <div id="miniTips">Use o analógico para andar</div>
     <div id="interactBtn">E</div>
   </div>
 
@@ -360,7 +377,7 @@
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
 
     let scene, camera, renderer, clock;
-    let player;
+    let player, playerVisual;
     let isOverlayOpen = true;
     let currentInteractable = null;
     let visitedStations = new Set();
@@ -376,18 +393,21 @@
 
     const mobileInput = {
       moveX: 0,
-      moveY: 0,
-      looking: false
+      moveY: 0
     };
 
     const playerState = {
       velX: 0,
-      velZ: 0,
-      speed: 0.16
+      velZ: 0
     };
 
     let yaw = Math.PI;
-    let pitch = -0.18;
+    let pitch = -0.35;
+
+    const cameraState = {
+      currentPos: new THREE.Vector3(),
+      targetLook: new THREE.Vector3()
+    };
 
     const isTouchDevice = matchMedia("(hover: none) and (pointer: coarse)").matches;
 
@@ -412,6 +432,7 @@
     const leftZone = document.getElementById("leftZone");
     const rightZone = document.getElementById("rightZone");
     const interactBtn = document.getElementById("interactBtn");
+    const miniTips = document.getElementById("miniTips");
 
     const stations = [
       {
@@ -419,24 +440,14 @@
         title: "1. O que é o Taylorismo?",
         position: [-18, 0, -12],
         html: `
-          <p>
-            O <strong>Taylorismo</strong> foi um sistema de organização do trabalho criado por
-            <strong>Frederick Winslow Taylor</strong>. Ele defendia que o trabalho deveria ser estudado
-            cientificamente para produzir mais em menos tempo.
-          </p>
-          <p>
-            A proposta era observar os trabalhadores, dividir as tarefas em partes menores e descobrir
-            qual seria o método mais eficiente para executar cada atividade.
-          </p>
+          <p>O <strong>Taylorismo</strong> foi um sistema de organização do trabalho criado por <strong>Frederick Winslow Taylor</strong>.</p>
+          <p>Seu objetivo era aumentar a produção por meio da análise científica do trabalho.</p>
           <ul>
-            <li>análise detalhada do trabalho;</li>
-            <li>busca por máxima eficiência;</li>
+            <li>estudo detalhado das tarefas;</li>
+            <li>busca por eficiência;</li>
             <li>redução de desperdícios;</li>
             <li>organização científica da produção.</li>
           </ul>
-          <p>
-            Por isso, o Taylorismo também é chamado de <strong>Administração Científica</strong>.
-          </p>
         `
       },
       {
@@ -444,23 +455,15 @@
         title: "2. Divisão e especialização do trabalho",
         position: [18, 0, -12],
         html: `
-          <p>
-            Uma das principais características do Taylorismo era a <strong>divisão das tarefas</strong>.
-            Em vez de um trabalhador fazer tudo, cada operário realizava apenas uma pequena parte do processo.
-          </p>
-          <p>
-            Isso gerava <strong>especialização</strong>, pois a pessoa repetia sempre a mesma função e ficava
-            mais rápida naquela etapa.
-          </p>
+          <p>No Taylorismo, o trabalho era dividido em pequenas etapas.</p>
+          <p>Cada operário fazia apenas uma parte do processo, ficando especializado nela.</p>
           <ul>
             <li>um corta;</li>
             <li>outro encaixa;</li>
             <li>outro monta;</li>
             <li>outro embala.</li>
           </ul>
-          <p>
-            Esse método aumentava a produtividade, mas também podia tornar o trabalho repetitivo e cansativo.
-          </p>
+          <p>Isso aumentava a produtividade, mas deixava o trabalho repetitivo.</p>
         `
       },
       {
@@ -468,22 +471,14 @@
         title: "3. Controle do tempo e dos movimentos",
         position: [-18, 0, 16],
         html: `
-          <p>
-            Taylor acreditava que era preciso medir o tempo gasto em cada tarefa e analisar os movimentos feitos
-            pelos trabalhadores. Isso ficou conhecido como <strong>estudo de tempos e movimentos</strong>.
-          </p>
-          <p>
-            Depois dessa análise, criava-se um método padrão que todos deveriam seguir.
-          </p>
+          <p>Taylor defendia o estudo de <strong>tempos e movimentos</strong>.</p>
+          <p>Era preciso analisar quanto tempo cada tarefa levava e quais movimentos eram feitos.</p>
           <ul>
-            <li>menos movimentos considerados inúteis;</li>
-            <li>mais rapidez no trabalho;</li>
-            <li>maior controle do ritmo da produção;</li>
-            <li>padronização da execução.</li>
+            <li>menos movimentos inúteis;</li>
+            <li>mais rapidez;</li>
+            <li>padronização;</li>
+            <li>maior controle da produção.</li>
           </ul>
-          <p>
-            Assim, a administração passava a controlar mais fortemente como o operário deveria trabalhar.
-          </p>
         `
       },
       {
@@ -491,24 +486,20 @@
         title: "4. Vantagens e críticas ao Taylorismo",
         position: [18, 0, 16],
         html: `
-          <p><strong>Vantagens do Taylorismo:</strong></p>
+          <p><strong>Vantagens:</strong></p>
           <ul>
             <li>aumento da produtividade;</li>
-            <li>maior organização nas fábricas;</li>
-            <li>redução de desperdícios;</li>
-            <li>produção mais rápida e previsível.</li>
+            <li>mais organização;</li>
+            <li>menos desperdício;</li>
+            <li>produção mais rápida.</li>
           </ul>
-          <p><strong>Críticas ao Taylorismo:</strong></p>
+          <p><strong>Críticas:</strong></p>
           <ul>
             <li>trabalho repetitivo;</li>
-            <li>menos autonomia para o trabalhador;</li>
+            <li>menos autonomia;</li>
             <li>desgaste físico e mental;</li>
             <li>visão do trabalhador como peça da produção.</li>
           </ul>
-          <p>
-            Portanto, o Taylorismo foi importante para o crescimento industrial, mas também foi criticado
-            por valorizar muito a eficiência e pouco o lado humano do trabalho.
-          </p>
         `
       }
     ];
@@ -549,6 +540,7 @@
       scene.fog = new THREE.Fog(0x09111f, 35, 110);
 
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
+
       renderer = new THREE.WebGLRenderer({ antialias: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(window.innerWidth, window.innerHeight);
@@ -564,6 +556,11 @@
       createStations();
       createQuizTerminal();
       addEventListeners();
+
+      if (isTouchDevice) {
+        miniTips.style.display = "block";
+        setTimeout(() => miniTips.style.display = "none", 3500);
+      }
     }
 
     function addLights() {
@@ -666,10 +663,7 @@
       }
 
       for (let z = -30; z <= 30; z += 12) {
-        const stripe = new THREE.Mesh(
-          new THREE.BoxGeometry(26, 0.03, 1),
-          yellowMat
-        );
+        const stripe = new THREE.Mesh(new THREE.BoxGeometry(26, 0.03, 1), yellowMat);
         stripe.position.set(0, 0.03, z);
         scene.add(stripe);
       }
@@ -733,7 +727,7 @@
       ctx.fillText(text, canvas.width / 2, canvas.height / 2);
 
       const tex = new THREE.CanvasTexture(canvas);
-      const mat = new THREE.MeshBasicMaterial({ map: tex, transparent: false });
+      const mat = new THREE.MeshBasicMaterial({ map: tex });
       const plane = new THREE.Mesh(new THREE.PlaneGeometry(size, size / 4), mat);
       plane.position.set(x, y, z);
       scene.add(plane);
@@ -741,9 +735,74 @@
 
     function createPlayer() {
       player = new THREE.Object3D();
-      player.position.set(0, 1.8, 30);
+      player.position.set(0, 0, 30);
       scene.add(player);
-      updateCamera();
+
+      playerVisual = new THREE.Group();
+
+      // cabeça
+      const head = new THREE.Mesh(
+        new THREE.SphereGeometry(0.45, 24, 24),
+        new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.8 })
+      );
+      head.position.y = 2.3;
+      head.castShadow = true;
+      playerVisual.add(head);
+
+      // tronco - uniforme inspirado na rede estadual ES
+      const shirt = new THREE.Mesh(
+        new THREE.BoxGeometry(1.1, 1.2, 0.6),
+        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75 })
+      );
+      shirt.position.y = 1.35;
+      shirt.castShadow = true;
+      playerVisual.add(shirt);
+
+      // faixa azul
+      const stripe = new THREE.Mesh(
+        new THREE.BoxGeometry(1.14, 0.18, 0.62),
+        new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.7 })
+      );
+      stripe.position.set(0, 1.55, 0.01);
+      playerVisual.add(stripe);
+
+      // braços
+      const armMat = new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.85 });
+      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.0, 0.25), armMat);
+      leftArm.position.set(-0.75, 1.35, 0);
+      leftArm.castShadow = true;
+      playerVisual.add(leftArm);
+
+      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.0, 0.25), armMat);
+      rightArm.position.set(0.75, 1.35, 0);
+      rightArm.castShadow = true;
+      playerVisual.add(rightArm);
+
+      // pernas azul escuro
+      const legMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.75 });
+      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), legMat);
+      leftLeg.position.set(-0.22, 0.45, 0);
+      leftLeg.castShadow = true;
+      playerVisual.add(leftLeg);
+
+      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), legMat);
+      rightLeg.position.set(0.22, 0.45, 0);
+      rightLeg.castShadow = true;
+      playerVisual.add(rightLeg);
+
+      // sapatos
+      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
+      const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.55), shoeMat);
+      leftShoe.position.set(-0.22, -0.18, 0.08);
+      playerVisual.add(leftShoe);
+
+      const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.55), shoeMat);
+      rightShoe.position.set(0.22, -0.18, 0.08);
+      playerVisual.add(rightShoe);
+
+      player.add(playerVisual);
+
+      updateCamera(true);
     }
 
     function createStations() {
@@ -786,12 +845,7 @@
         label.position.set(0, 4.7, 0);
         group.add(label);
 
-        group.userData = {
-          type: "station",
-          station,
-          orb
-        };
-
+        group.userData = { type: "station", station, orb };
         scene.add(group);
       });
     }
@@ -867,9 +921,7 @@
       document.getElementById("startBtn").addEventListener("click", () => {
         overlay.style.display = "none";
         isOverlayOpen = false;
-        if (!isTouchDevice) {
-          renderer.domElement.requestPointerLock?.();
-        }
+        if (!isTouchDevice) renderer.domElement.requestPointerLock?.();
       });
 
       document.getElementById("closeInfoBtn").addEventListener("click", closePanels);
@@ -903,7 +955,7 @@
         if (document.pointerLockElement === renderer.domElement && !isAnyPanelOpen()) {
           yaw -= e.movementX * 0.0024;
           pitch -= e.movementY * 0.0018;
-          pitch = clamp(pitch, -1.15, 0.55);
+          pitch = clamp(pitch, -0.95, 0.65);
           updateCamera();
         }
       });
@@ -933,7 +985,7 @@
       let touchId = null;
       let originX = 0;
       let originY = 0;
-      const maxRadius = 42;
+      const maxRadius = 45;
 
       leftZone.addEventListener("touchstart", (e) => {
         if (touchId !== null) return;
@@ -943,8 +995,8 @@
         originY = t.clientY;
 
         joystickBase.style.display = "block";
-        joystickBase.style.left = (originX - 60) + "px";
-        joystickBase.style.top = (originY - 60) + "px";
+        joystickBase.style.left = (originX - 64) + "px";
+        joystickBase.style.top = (originY - 64) + "px";
         resetJoystickKnob();
       }, { passive: true });
 
@@ -961,8 +1013,8 @@
             dy = dy / len * maxRadius;
           }
 
-          joystickKnob.style.left = (34 + dx) + "px";
-          joystickKnob.style.top = (34 + dy) + "px";
+          joystickKnob.style.left = (36 + dx) + "px";
+          joystickKnob.style.top = (36 + dy) + "px";
 
           mobileInput.moveX = dx / maxRadius;
           mobileInput.moveY = dy / maxRadius;
@@ -992,8 +1044,8 @@
       });
 
       function resetJoystickKnob() {
-        joystickKnob.style.left = "34px";
-        joystickKnob.style.top = "34px";
+        joystickKnob.style.left = "36px";
+        joystickKnob.style.top = "36px";
       }
     }
 
@@ -1001,6 +1053,7 @@
       let lookTouchId = null;
       let lastX = 0;
       let lastY = 0;
+      const sensitivity = 0.0065;
 
       rightZone.addEventListener("touchstart", (e) => {
         if (lookTouchId !== null) return;
@@ -1012,6 +1065,7 @@
 
       rightZone.addEventListener("touchmove", (e) => {
         if (isAnyPanelOpen()) return;
+
         for (const t of e.changedTouches) {
           if (t.identifier !== lookTouchId) continue;
 
@@ -1020,26 +1074,22 @@
           lastX = t.clientX;
           lastY = t.clientY;
 
-          yaw -= dx * 0.012;
-          pitch -= dy * 0.008;
-          pitch = clamp(pitch, -1.15, 0.55);
+          yaw -= dx * sensitivity;
+          pitch -= dy * sensitivity * 0.72;
+          pitch = clamp(pitch, -0.95, 0.65);
           updateCamera();
         }
       }, { passive: true });
 
       rightZone.addEventListener("touchend", (e) => {
         for (const t of e.changedTouches) {
-          if (t.identifier === lookTouchId) {
-            lookTouchId = null;
-          }
+          if (t.identifier === lookTouchId) lookTouchId = null;
         }
       });
 
       rightZone.addEventListener("touchcancel", (e) => {
         for (const t of e.changedTouches) {
-          if (t.identifier === lookTouchId) {
-            lookTouchId = null;
-          }
+          if (t.identifier === lookTouchId) lookTouchId = null;
         }
       });
     }
@@ -1054,11 +1104,11 @@
         detectNearbyInteractable();
       }
 
-      animateObjects();
+      animateObjects(dt);
       renderer.render(scene, camera);
     }
 
-    function animateObjects() {
+    function animateObjects(dt) {
       const t = performance.now() * 0.001;
 
       scene.traverse((obj) => {
@@ -1068,6 +1118,11 @@
           orb.rotation.y += 0.018;
         }
       });
+
+      const moveSpeed = Math.hypot(playerState.velX, playerState.velZ);
+      if (playerVisual) {
+        playerVisual.position.y = Math.sin(t * 10) * Math.min(0.05, moveSpeed * 0.012);
+      }
     }
 
     function updateMovement(dt) {
@@ -1082,29 +1137,25 @@
       let ny = 0;
 
       if (len > 0.001) {
-        nx = inputX / Math.max(1, len);
-        ny = inputY / Math.max(1, len);
+        nx = inputX / len;
+        ny = inputY / len;
       }
 
-      const baseSpeed = keys.sprint ? 11.5 : 7.5;
-      const targetSpeed = baseSpeed * Math.min(1, Math.hypot(nx, ny));
+      const speed = keys.sprint ? 11.5 : 7.5;
 
       const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
       const right = new THREE.Vector3(Math.sin(yaw + Math.PI / 2), 0, Math.cos(yaw + Math.PI / 2));
 
       const desired = new THREE.Vector3();
-      desired.addScaledVector(right, nx * targetSpeed);
-      desired.addScaledVector(forward, -ny * targetSpeed);
+      desired.addScaledVector(right, nx * speed);
+      desired.addScaledVector(forward, -ny * speed);
 
-      const accel = 14;
-      const damping = 10;
-
-      playerState.velX += (desired.x - playerState.velX) * Math.min(1, accel * dt);
-      playerState.velZ += (desired.z - playerState.velZ) * Math.min(1, accel * dt);
+      playerState.velX += (desired.x - playerState.velX) * Math.min(1, 12 * dt);
+      playerState.velZ += (desired.z - playerState.velZ) * Math.min(1, 12 * dt);
 
       if (len < 0.001) {
-        playerState.velX += (0 - playerState.velX) * Math.min(1, damping * dt);
-        playerState.velZ += (0 - playerState.velZ) * Math.min(1, damping * dt);
+        playerState.velX += (0 - playerState.velX) * Math.min(1, 10 * dt);
+        playerState.velZ += (0 - playerState.velZ) * Math.min(1, 10 * dt);
       }
 
       player.position.x += playerState.velX * dt;
@@ -1113,28 +1164,47 @@
       player.position.x = clamp(player.position.x, -36, 36);
       player.position.z = clamp(player.position.z, -36, 36);
 
+      const lookDir = new THREE.Vector3(playerState.velX, 0, playerState.velZ);
+      if (lookDir.lengthSq() > 0.001) {
+        player.rotation.y = Math.atan2(lookDir.x, lookDir.z);
+      }
+
       updateCamera();
     }
 
-    function updateCamera() {
-      const camDistance = 5.8;
-      const camHeight = 2.9;
+    function updateCamera(force = false) {
+      const camDistance = 6.2;
+      const camHeight = 3.1;
 
       const dirX = Math.sin(yaw) * Math.cos(pitch);
       const dirY = Math.sin(pitch);
       const dirZ = Math.cos(yaw) * Math.cos(pitch);
 
-      camera.position.set(
+      const desiredPos = new THREE.Vector3(
         player.position.x - dirX * camDistance,
-        player.position.y + camHeight - dirY * 1.6,
+        player.position.y + camHeight - dirY * 1.7,
         player.position.z - dirZ * camDistance
       );
 
-      camera.lookAt(
+      const targetLook = new THREE.Vector3(
         player.position.x,
-        player.position.y + 1.8,
+        player.position.y + 1.7,
         player.position.z
       );
+
+      if (force) {
+        camera.position.copy(desiredPos);
+        camera.lookAt(targetLook);
+        cameraState.currentPos.copy(desiredPos);
+        cameraState.targetLook.copy(targetLook);
+        return;
+      }
+
+      cameraState.currentPos.lerp(desiredPos, 0.12);
+      cameraState.targetLook.lerp(targetLook, 0.18);
+
+      camera.position.copy(cameraState.currentPos);
+      camera.lookAt(cameraState.targetLook);
     }
 
     function detectNearbyInteractable() {
@@ -1152,7 +1222,7 @@
         }
       });
 
-      if (nearest && nearestDist < 5.4) {
+      if (nearest && nearestDist < 5.6) {
         currentInteractable = nearest;
         interactBtn.style.display = "flex";
 
@@ -1282,15 +1352,7 @@
       infoTitle.innerHTML = "Atividade concluída";
       infoContent.innerHTML = `
         <p><strong>Resultado do quiz:</strong> ${quizScore}/${quizData.length} (${percent}%)</p>
-        <p>
-          Você concluiu o jogo sobre o <strong>Taylorismo</strong> e aprendeu que esse sistema buscava
-          aumentar a produção por meio da <strong>divisão das tarefas</strong>, da
-          <strong>padronização</strong> e do <strong>controle do tempo</strong>.
-        </p>
-        <p>
-          Ao mesmo tempo, também viu que ele recebeu críticas por tornar o trabalho mais repetitivo
-          e reduzir a autonomia dos trabalhadores.
-        </p>
+        <p>Você concluiu o jogo sobre o <strong>Taylorismo</strong> e aprendeu seus principais pontos.</p>
         <p><strong>Parabéns pela atividade!</strong></p>
       `;
       infoPanel.style.display = "flex";

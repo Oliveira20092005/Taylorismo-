@@ -22,7 +22,6 @@
 
     canvas { display: block; }
 
-    /* Barra compacta no topo */
     #topBar {
       position: fixed;
       top: 10px;
@@ -505,6 +504,8 @@
     let boxesOnBelts = [];
     let npcs = [];
     let sceneObjects = [];
+    let worldObstacles = [];
+    const playerRadius = 1.0;
 
     let audioCtx = null;
     let audioEnabled = false;
@@ -651,6 +652,50 @@
     let quizScore = 0;
     let quizAnswered = false;
 
+    function addObstacle(x, z, width, depth) {
+      worldObstacles.push({
+        x,
+        z,
+        halfW: width / 2,
+        halfD: depth / 2
+      });
+    }
+
+    function resolveCollisions(nextX, nextZ) {
+      let correctedX = nextX;
+      let correctedZ = nextZ;
+
+      for (const obs of worldObstacles) {
+        const nearestX = clamp(correctedX, obs.x - obs.halfW, obs.x + obs.halfW);
+        const nearestZ = clamp(correctedZ, obs.z - obs.halfD, obs.z + obs.halfD);
+
+        let dx = correctedX - nearestX;
+        let dz = correctedZ - nearestZ;
+        let distSq = dx * dx + dz * dz;
+
+        if (distSq < playerRadius * playerRadius) {
+          let dist = Math.sqrt(distSq);
+
+          if (dist < 0.0001) {
+            const pushX = correctedX >= obs.x ? 1 : -1;
+            const pushZ = correctedZ >= obs.z ? 1 : -1;
+            dx = pushX * 0.001;
+            dz = pushZ * 0.001;
+            dist = Math.sqrt(dx * dx + dz * dz);
+          }
+
+          const overlap = playerRadius - dist;
+          correctedX += (dx / dist) * overlap;
+          correctedZ += (dz / dist) * overlap;
+        }
+      }
+
+      correctedX = clamp(correctedX, -38, 38);
+      correctedZ = clamp(correctedZ, -38, 38);
+
+      return { x: correctedX, z: correctedZ };
+    }
+
     init();
     animate();
 
@@ -750,6 +795,8 @@
         wall.castShadow = true;
         wall.receiveShadow = true;
         scene.add(wall);
+
+        addObstacle(x, z, w, d);
       });
 
       const roof = new THREE.Mesh(
@@ -767,6 +814,8 @@
           col.castShadow = true;
           col.receiveShadow = true;
           scene.add(col);
+
+          addObstacle(x, z, 1.5, 1.5);
         }
       }
 
@@ -778,6 +827,8 @@
         belt.userData.beltIndex = i + 2;
         conveyorBelts.push(belt);
         scene.add(belt);
+
+        addObstacle(i * 6, 0, 7, 36);
 
         for (let j = -14; j <= 14; j += 7) {
           const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 6.6, 20), beamMat);
@@ -818,6 +869,8 @@
         base.receiveShadow = true;
         scene.add(base);
 
+        addObstacle(x, z, 6, 6);
+
         const top = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 4), index % 2 === 0 ? yellowMat : pinkMat);
         top.position.set(x, y + 2.5, z);
         top.castShadow = true;
@@ -831,18 +884,23 @@
       });
 
       for (let i = 0; i < 20; i++) {
+        const x = -33 + (i % 5) * 3.3;
+        const z = 27 + Math.floor((i % 10) / 5) * 3.1;
+
         const box = new THREE.Mesh(
           new THREE.BoxGeometry(2.2, 2.2, 2.2),
           new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.85, metalness: 0.05 })
         );
         box.position.set(
-          -33 + (i % 5) * 3.3,
+          x,
           1.1 + Math.floor(i / 10) * 2.3,
-          27 + Math.floor((i % 10) / 5) * 3.1
+          z
         );
         box.castShadow = true;
         box.receiveShadow = true;
         scene.add(box);
+
+        addObstacle(x, z, 2.2, 2.2);
       }
 
       createSign("FÁBRICA TAYLORISTA", 0, 11.5, -41.2, 18);
@@ -917,13 +975,13 @@
 
       if (!front) {
         ctx.fillStyle = "#f8fafc";
-        ctx.fillRect(180, 92, 664, 74);
+        ctx.fillRect(140, 92, 744, 74);
 
         ctx.fillStyle = "#1f3559";
-        ctx.font = "bold 38px Arial";
+        ctx.font = "bold 34px Arial";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-        ctx.fillText("CÂNDIDO PORTINARE", 512, 129);
+        ctx.fillText("CÂNDIDO PORTINARI", 512, 129);
       }
 
       const texture = new THREE.CanvasTexture(canvas);
@@ -1155,6 +1213,8 @@
 
         group.userData = { type: "station", station, orb, ring };
         scene.add(group);
+
+        addObstacle(group.position.x, group.position.z, 4.8, 4.8);
       });
     }
 
@@ -1199,6 +1259,8 @@
       group.userData = { type: "quiz", screen };
       quizTerminalGroup = group;
       scene.add(group);
+
+      addObstacle(group.position.x, group.position.z, 5.4, 5.4);
     }
 
     function createBillboard(text, width, height) {
@@ -1253,6 +1315,8 @@
 
         npcs.push(npcRoot);
         scene.add(npcRoot);
+
+        addObstacle(npcRoot.position.x, npcRoot.position.z, 1.8, 1.8);
       });
     }
 
@@ -1594,11 +1658,12 @@
         playerState.velZ += (0 - playerState.velZ) * Math.min(1, 10 * dt);
       }
 
-      player.position.x += playerState.velX * dt;
-      player.position.z += playerState.velZ * dt;
+      let nextX = player.position.x + playerState.velX * dt;
+      let nextZ = player.position.z + playerState.velZ * dt;
 
-      player.position.x = clamp(player.position.x, -38, 38);
-      player.position.z = clamp(player.position.z, -38, 38);
+      const corrected = resolveCollisions(nextX, nextZ);
+      player.position.x = corrected.x;
+      player.position.z = corrected.z;
 
       const lookDir = new THREE.Vector3(playerState.velX, 0, playerState.velZ);
       if (lookDir.lengthSq() > 0.001) {
@@ -1809,9 +1874,8 @@
         </div>
 
         <div class="finalCredits">
-          <h3>Turma e Grupo</h3>
-          <p><strong>Série/Turma:</strong> 2M01 LG</p>
-          <p><strong>Grupo:</strong> Henry, Otávio, Daniel, Bruno e Adrian</p>
+          <h3>Grupo</h3>
+          <p><strong>Integrantes:</strong> Henry, Otávio, Daniel, Bruno e Adrian</p>
         </div>
 
         <p style="margin-top:16px;"><strong>Resumo do conteúdo apresentado:</strong></p>

@@ -2,71 +2,122 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
-    <title>Taylorismo 3D: A Fábrica Eficiente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Taylorismo 3D - A Fábrica</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #333; }
-        #ui { position: absolute; top: 10px; left: 10px; color: white; font-family: sans-serif; pointer-events: none; }
-        #joystick { position: absolute; bottom: 50px; left: 50px; width: 100px; height: 100px; background: rgba(255,255,255,0.2); border-radius: 50%; }
+        body { margin: 0; overflow: hidden; font-family: 'Courier New', Courier, monospace; touch-action: none; }
+        #ui { position: absolute; top: 20px; width: 100%; text-align: center; color: white; pointer-events: none; text-shadow: 2px 2px black; }
+        #instrucoes { position: absolute; bottom: 20px; left: 20px; color: yellow; font-size: 12px; pointer-events: none; }
+        /* Joystick visual simples */
+        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border: 2px solid white; border-radius: 50%; }
+        #joy-stick { position: absolute; top: 25px; left: 25px; width: 50px; height: 50px; background: white; border-radius: 50%; opacity: 0.5; }
     </style>
 </head>
 <body>
 
     <div id="ui">
-        <h1>Missão: Cronometragem de Tempos</h1>
-        <p>Use o lado esquerdo para andar e deslize a tela para olhar.</p>
+        <h2 id="missao">MISSÃO: ANALISAR EFICIÊNCIA</h2>
+        <div id="stats">Tempo: 0s | Peças: 0</div>
     </div>
-    <div id="joystick"></div>
+
+    <div id="instrucoes">Esquerda: Andar | Direita: Olhar</div>
+    <div id="joy-container"><div id="joy-stick"></div></div>
 
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
             }
         }
     </script>
 
     <script type="module">
         import * as THREE from 'three';
-        import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
-        // 1. Configuração Básica
+        // --- CONFIGURAÇÃO DA CENA ---
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87ceeb); // Céu azul
+        scene.background = new THREE.Color(0x333333); // Fábrica escura
+        scene.fog = new THREE.Fog(0x333333, 1, 50);
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
         document.body.appendChild(renderer.domElement);
 
-        // 2. Luzes
-        const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+        // --- ILUMINAÇÃO (Estilo Industrial) ---
+        const light = new THREE.PointLight(0xffaa00, 500, 100);
+        light.position.set(0, 10, 0);
         scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040, 2));
 
-        // 3. O Chão da Fábrica
-        const floorGeometry = new THREE.PlaneGeometry(100, 100);
-        const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x808080 });
-        const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+        // --- CHÃO E PAREDES ---
+        const floorGeo = new THREE.PlaneGeometry(100, 100);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0x222222 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
         floor.rotation.x = -Math.PI / 2;
         scene.add(floor);
 
-        // 4. Exemplo de Objeto (Uma Máquina de Taylor)
-        const boxGeom = new THREE.BoxGeometry(2, 2, 2);
-        const boxMat = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-        const machine = new THREE.Mesh(boxGeom, boxMat);
-        machine.position.y = 1;
-        scene.add(machine);
+        // Criar "Máquinas" (Cubos) espalhadas
+        for(let i=0; i<10; i++) {
+            const mGeo = new THREE.BoxGeometry(2, 3, 2);
+            const mMat = new THREE.MeshStandardMaterial({ color: 0x555555 });
+            const m = new THREE.Mesh(mGeo, mMat);
+            m.position.set(Math.random()*30-15, 1.5, Math.random()*30-15);
+            scene.add(m);
+        }
 
-        camera.position.y = 1.6; // Altura dos olhos
+        // --- CONTROLES MOBILE ---
+        let moveForward = 0, moveRight = 0;
+        let yaw = 0, pitch = 0;
+        camera.position.set(0, 1.6, 5);
 
-        // 5. Loop de Animação
+        // Lógica do Toque para Olhar
+        let touchX = 0, touchY = 0;
+        window.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            if (touch.clientX > window.innerWidth / 2) { // Lado direito olha
+                const deltaX = touch.clientX - touchX;
+                const deltaY = touch.clientY - touchY;
+                if(touchX !== 0) {
+                    yaw -= deltaX * 0.005;
+                    pitch -= deltaY * 0.005;
+                    pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch));
+                }
+                touchX = touch.clientX;
+                touchY = touch.clientY;
+            } else { // Lado esquerdo anda (Joystick simples)
+                moveForward = 1;
+            }
+        });
+
+        window.addEventListener('touchend', () => {
+            touchX = 0; touchY = 0; moveForward = 0;
+        });
+
+        // --- LOOP DE ANIMAÇÃO ---
+        let tempo = 0;
         function animate() {
             requestAnimationFrame(animate);
+
+            // Aplicar Rotação
+            camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+
+            // Mover para frente na direção que olha
+            if (moveForward) {
+                const direction = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+                direction.y = 0; // Não voar
+                camera.position.addScaledVector(direction, 0.1);
+            }
+
+            // Interface
+            tempo += 0.01;
+            document.getElementById('stats').innerText = `Eficiência Taylorista: ${Math.floor(tempo)}s`;
+
             renderer.render(scene, camera);
         }
         animate();
 
-        // Ajuste de tela
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();

@@ -3,142 +3,194 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylorismo: O Grande Galpão 1900</title>
+    <title>Taylorismo 1900: A Era Mecânica</title>
     <style>
-        body { margin: 0; background: #222; overflow: hidden; font-family: 'Georgia', serif; touch-action: none; }
-        #viewport { width: 100vw; height: 100vh; filter: sepia(0.2) contrast(1.1); }
-        #grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/stardust.png'); opacity: 0.1; pointer-events: none; z-index: 50; }
-        #ui { position: absolute; top: 0; width: 100%; text-align: center; color: #d4af37; pointer-events: none; z-index: 10; }
-        .hud-top { display: flex; justify-content: space-around; width: 100%; background: linear-gradient(to bottom, rgba(46,34,20,0.9), transparent); padding: 15px 0; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1510; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: #e2c08d; text-align: center; padding: 20px; }
-        button { padding: 15px 50px; font-size: 22px; cursor: pointer; background: #8b5a2b; color: white; border: 2px solid #d4af37; text-transform: uppercase; font-family: serif; }
-        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 110px; height: 110px; z-index: 20; opacity: 0.5; border: 2px solid #d4af37; border-radius: 50%; }
-        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 1px solid #d4af37; transform: translate(-50%, -50%); pointer-events: none; }
+        body { margin: 0; background: #222; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; }
+        
+        /* Filtro de Filme Antigo (Vintage) */
+        #viewport-container { 
+            width: 100vw; height: 100vh; 
+            filter: sepia(0.3) contrast(1.1) brightness(0.9);
+        }
+        #grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.12; pointer-events: none; z-index: 50;
+        }
+
+        /* Interface Retrô (HUD) */
+        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #d4af37; pointer-events: none; z-index: 10; text-shadow: 1px 1px #000; }
+        .hud-top { display: flex; justify-content: space-around; width: 100%; font-size: 18px; background: rgba(46, 34, 20, 0.8); border-bottom: 2px solid #5d4037; padding: 10px 0; }
+        
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1510; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: #e2c08d; text-align: center; padding: 20px; border: 15px double #5d4037; box-sizing: border-box; }
+        button { padding: 15px 40px; font-size: 20px; cursor: pointer; background: #5d4037; color: white; border: 3px double #d4af37; text-transform: uppercase; font-family: serif; }
+        
+        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 110px; height: 110px; z-index: 20; opacity: 0.4; border: 2px solid #d4af37; border-radius: 50%; }
+        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 1px solid rgba(212,175,55,0.5); transform: translate(-50%, -50%); pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="grain"></div>
     <div id="overlay">
-        <h1>GALPÃO INDUSTRIAL TAYLOR</h1>
-        <p>Ajuste o ritmo das máquinas para atingir a cota do dia.</p>
-        <button onclick="startApp()">Entrar no Galpão</button>
+        <h1 style="letter-spacing: 3px;">OFICINA MECÂNICA TAYLOR</h1>
+        <p style="font-style: italic;">Turno de 60 segundos iniciado.</p>
+        <p>REQUISITO: Sincronize as 5 prensas de vapor com falha (Vermelhas).</p>
+        <button onclick="startApp()">Acionar Vapor</button>
     </div>
 
     <div id="ui">
         <div class="hud-top">
-            <div id="score">PRODUÇÃO: 0</div>
-            <div id="timer">TURNO: 60s</div>
+            <div id="score">COTAS: 0</div>
+            <div id="timer">RELÓGIO: 60s</div>
         </div>
+        <p id="msg" style="color: #d4af37; font-size: 14px; margin-top: 5px;">Máquinas desajustadas: 5</p>
     </div>
 
     <div class="crosshair"></div>
     <div id="joy-container"></div>
-    <div id="viewport"></div>
+    <div id="viewport-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.1/dist/nipplejs.min.js"></script>
 
     <script>
-        let scene, camera, renderer, joy, machines = [], score = 0, targetsLeft = 5;
+        let scene, camera, renderer, joy, machines = [], operarios = [], score = 0, targetsLeft = 5;
         let moveF = 0, moveR = 0, yaw = 0, pitch = 0;
 
         function startApp() {
             document.getElementById('overlay').style.display = 'none';
             init();
+            startTimer();
         }
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x332211);
-            scene.fog = new THREE.Fog(0x332211, 5, 60);
+            scene.background = new THREE.Color(0x1a1510);
+            scene.fog = new THREE.Fog(0x1a1510, 2, 40);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            document.getElementById('viewport').appendChild(renderer.domElement);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            document.getElementById('viewport-container').appendChild(renderer.domElement);
 
-            // 1. ILUMINAÇÃO DE GALPÃO (MAIS CLARA)
-            const ambient = new THREE.AmbientLight(0xffffff, 0.6); // Luz geral
+            // Luzes Quentes (Filamento de Carbono)
+            const ambient = new THREE.AmbientLight(0x443322, 1);
             scene.add(ambient);
             
-            const mainLight = new THREE.DirectionalLight(0xffcc88, 1); // Luz do teto amarelada
-            mainLight.position.set(10, 20, 10);
-            scene.add(mainLight);
+            const lamp = new THREE.PointLight(0xffcc88, 2, 30);
+            lamp.position.set(0, 10, 0);
+            scene.add(lamp);
 
-            // 2. CONSTRUÇÃO DO GALPÃO (Paredes e Teto)
-            const wallMat = new THREE.MeshStandardMaterial({ color: 0x443322, roughness: 1 });
-            
-            // Chão de tijolos/pedra
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 80), new THREE.MeshStandardMaterial({color: 0x221a11}));
+            // CHÃO: Concreto Gasto e Madeira Suja
+            const floorMat = new THREE.MeshStandardMaterial({ 
+                color: 0x2e2214, 
+                roughness: 1, 
+                metalness: 0
+            });
+            const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // Paredes (Norte, Sul, Leste, Oeste)
-            const wallGeo = new THREE.PlaneGeometry(80, 20);
-            
-            const createWall = (z, x, rotY) => {
-                const w = new THREE.Mesh(wallGeo, wallMat);
-                w.position.set(x, 10, z);
-                w.rotation.y = rotY;
-                scene.add(w);
-            };
-
-            createWall(-40, 0, 0);          // Parede Fundo
-            createWall(40, 0, Math.PI);     // Parede Frente
-            createWall(0, -40, Math.PI/2);  // Parede Esquerda
-            createWall(0, 40, -Math.PI/2); // Parede Direita
-
-            // Vigas do Teto
-            const beamGeo = new THREE.BoxGeometry(80, 0.5, 0.5);
-            for(let i = -40; i <= 40; i += 10) {
-                const beam = new THREE.Mesh(beamGeo, new THREE.MeshStandardMaterial({color: 0x111111}));
-                beam.position.set(0, 18, i);
+            // Adicionar vigas de madeira no chão para textura
+            const beamGeo = new THREE.BoxGeometry(0.2, 0.01, 100);
+            const beamMat = new THREE.MeshBasicMaterial({color: 0x111111});
+            for(let i=-50; i<50; i+=2) {
+                const beam = new THREE.Mesh(beamGeo, beamMat);
+                beam.position.set(i, 0.01, 0);
                 scene.add(beam);
             }
 
-            // 3. MÁQUINAS PISTÃO COMPLEXAS
-            for(let i=0; i<15; i++) {
-                createMachine(i);
+            // --- CRIAÇÃO DOS OPERÁRIOS E MÁQUINAS (ESTILO 1900) ---
+            for(let i=0; i<20; i++) {
+                createMachineAndWorker(i);
             }
 
             setupControls();
             animate();
-            startTimer();
         }
 
-        function createMachine(id) {
-            const group = new THREE.Group();
+        // Função para criar Operários e Máquinas com aparência Retrô
+        function createMachineAndWorker(id) {
+            const machineGroup = new THREE.Group();
+            const machinePos = new THREE.Vector3((Math.random()-0.5)*50, 0.4, (Math.random()-0.5)*50);
             
+            // 1. A Máquina (Prensa de Vapor)
+            const matFerro = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.6 });
+            const matLatão = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, metalness: 1 });
+
             // Base de Metal Pesado
-            const base = new THREE.Mesh(new THREE.BoxGeometry(2.5, 1, 2.5), new THREE.MeshStandardMaterial({color: 0x1a1a1a}));
-            group.add(base);
+            const base = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.8, 8), matFerro);
+            machineGroup.add(base);
 
-            // Estrutura de Suporte (Pistão Externo)
-            const housing = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1, 4, 8), new THREE.MeshStandardMaterial({color: 0x2e2214, metalness: 0.5}));
-            housing.position.y = 2;
-            group.add(housing);
+            // Cilindro Principal
+            const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 3), matFerro);
+            cylinder.position.y = 1.9;
+            machineGroup.add(cylinder);
 
-            // Pistão Móvel (Haste de Latão/Aço)
+            // Engrenagens Visíveis (Roda de Inércia)
+            const gear = new THREE.Mesh(new THREE.TorusGeometry(1, 0.1, 8, 16), matLatão);
+            gear.rotation.y = Math.PI/2;
+            gear.position.y = 2;
+            machineGroup.add(gear);
+
+            // Pistão Móvel (Haste de Aço Polido)
             const isTarget = id < 5;
-            const piston = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 5, 8), new THREE.MeshStandardMaterial({
-                color: isTarget ? 0xcc0000 : 0x8b5a2b,
-                metalness: 1,
-                roughness: 0.2
-            }));
+            const matHaste = new THREE.MeshStandardMaterial({ 
+                color: isTarget ? 0x990000 : 0xaaaaaa, // Alvo: Vermelho
+                metalness: 1, 
+                roughness: 0.1,
+                emissive: isTarget ? 0x220000 : 0x000000
+            });
+            const head = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 3, 8), matHaste);
             
             const pistonGroup = new THREE.Group();
-            pistonGroup.add(piston);
-            pistonGroup.position.y = 4;
-            pistonGroup.userData = { id, broken: isTarget, initialY: 4 };
+            pistonGroup.add(head);
+            pistonGroup.position.y = 3;
+            pistonGroup.userData = { id: id, broken: isTarget, initialY: 3, gear: gear };
             
-            group.add(pistonGroup);
-            group.position.set((Math.random()-0.5)*60, 0.5, (Math.random()-0.5)*60);
-            scene.add(group);
+            machineGroup.add(pistonGroup);
+            machineGroup.position.copy(machinePos);
+            scene.add(machineGroup);
             machines.push(pistonGroup);
+
+            // 2. O Operário (Modelo Simples de Época)
+            const workerGroup = new THREE.Group();
+            
+            // Macacão/Roupas de Ferroviário (Marrom sujo)
+            const workerMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f });
+            
+            // Corpo e Cabeça
+            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.3), workerMat);
+            const headOp = new THREE.Mesh(new THREE.SphereGeometry(0.25), new THREE.MeshBasicMaterial({color: 0xe2c08d})); // Pele
+            headOp.position.y = 0.5;
+            
+            // Chapéu (Estilo Boater/Flat cap)
+            const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 8), new THREE.MeshBasicMaterial({color: 0x111111}));
+            hat.position.y = 0.7;
+            
+            // Braço que opera (Simbolizando o trabalho)
+            const arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), new THREE.MeshBasicMaterial({color: 0xe2c08d}));
+            arm.position.set(0.3, 0.2, 0.1);
+            
+            workerGroup.add(torso);
+            workerGroup.add(headOp);
+            workerGroup.add(hat);
+            workerGroup.add(arm);
+            
+            // Dados para animação individual
+            workerGroup.userData = { arm: arm, initialY: 1.2, speed: 0.05 + Math.random()*0.02 };
+            
+            // Posicionar o operário em frente à máquina
+            workerGroup.position.set(machinePos.x, workerGroup.userData.initialY, machinePos.z - 1.5);
+            workerGroup.rotation.y = -Math.PI/2;
+            scene.add(workerGroup);
+            operarios.push(workerGroup);
         }
 
+        // --- CONTROLES MOBILE ---
         function setupControls() {
             joy = nipplejs.create({ zone: document.getElementById('joy-container'), mode: 'static', position: {left: '55px', bottom: '55px'}, size: 85 });
             joy.on('move', (e, d) => {
@@ -149,21 +201,7 @@
 
             let lastX = 0, lastY = 0;
             window.addEventListener('touchstart', (e) => {
-                if (e.touches[0].clientX > window.innerWidth / 2) {
-                    const ray = new THREE.Raycaster();
-                    ray.setFromCamera(new THREE.Vector2(0, 0), camera);
-                    const hits = ray.intersectObjects(machines, true);
-                    if (hits.length > 0) {
-                        let obj = hits[0].object;
-                        while(obj.parent && !obj.userData.initialY) obj = obj.parent;
-                        if (obj.userData.broken) {
-                            obj.children[0].material.color.set(0x8b5a2b);
-                            obj.userData.broken = false;
-                            score += 100;
-                            document.getElementById('score').innerText = `PRODUÇÃO: ${score}`;
-                        }
-                    }
-                }
+                if (e.touches[0].clientX > window.innerWidth / 2) checkInteraction();
             });
 
             window.addEventListener('touchmove', (e) => {
@@ -180,12 +218,35 @@
             window.addEventListener('touchend', () => { lastX = 0; lastY = 0; });
         }
 
+        function checkInteraction() {
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
+            const intersects = raycaster.intersectObjects(machines, true);
+            if (intersects.length > 0) {
+                let obj = intersects[0].object;
+                while(obj.parent && !obj.userData.initialY) obj = obj.parent;
+                
+                if (obj.userData.broken) {
+                    obj.children[0].material.color.set(0xaaaaaa); // Cor de aço polido
+                    obj.children[0].material.emissive.set(0x000000);
+                    obj.userData.broken = false;
+                    targetsLeft--;
+                    score += 100;
+                    document.getElementById('score').innerText = `COTAS: ${score}`;
+                    document.getElementById('msg').innerText = `Máquinas desajustadas: ${targetsLeft}`;
+                }
+            }
+        }
+
         function startTimer() {
             let time = 60;
             const t = setInterval(() => {
-                time--;
-                document.getElementById('timer').innerText = `TURNO: ${time}s`;
-                if (time <= 0) { clearInterval(t); alert("Turno encerrado!"); location.reload(); }
+                if(time > 0) {
+                    time--;
+                    document.getElementById('timer').innerText = `RELÓGIO: ${time}s`;
+                } else {
+                    clearInterval(t); alert("Fim do turno! Cotas produzidas: " + score); location.reload();
+                }
             }, 1000);
         }
 
@@ -194,15 +255,30 @@
             camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
             const dir = new THREE.Vector3(moveR, 0, -moveF).applyQuaternion(camera.quaternion);
             dir.y = 0;
-            camera.position.addScaledVector(dir, 0.15);
+            camera.position.addScaledVector(dir, 0.13);
             camera.position.y = 1.7;
 
+            // ANIMAR MÁQUINAS E OPERÁRIOS
             machines.forEach((p, i) => {
-                const s = p.userData.broken ? 0.01 : 0.004;
-                p.position.y = p.userData.initialY + Math.sin(Date.now() * s + i) * 1.5;
+                const s = p.userData.broken ? 0.008 : 0.004;
+                p.position.y = p.userData.initialY + Math.sin(Date.now() * s + i) * 1.2;
+                // Engrenagem girando
+                p.userData.gear.rotation.z += 0.01;
             });
+
+            // ANIMAR OPERÁRIOS (Movimento repetitivo de braço)
+            operarios.forEach(op => {
+                op.userData.arm.rotation.x = Math.sin(Date.now() * op.userData.speed) * 0.5;
+            });
+
             renderer.render(scene, camera);
         }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>

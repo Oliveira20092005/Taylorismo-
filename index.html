@@ -3,147 +3,134 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylorismo Pro: Digital Factory</title>
+    <title>Taylorismo: The Efficiency Game</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; touch-action: none; }
-        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #00ff00; pointer-events: none; z-index: 10; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; }
-        button { padding: 15px 30px; font-size: 20px; cursor: pointer; background: #00ff00; border: none; font-weight: bold; border-radius: 5px; }
-        .paineis { position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 15px; border-left: 5px solid #00ff00; font-size: 14px; max-width: 250px; pointer-events: none; border-radius: 0 10px 10px 0; }
-        #joy-container { position: absolute; bottom: 40px; left: 40px; width: 100px; height: 100px; z-index: 20; opacity: 0.5; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; }
+        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #00ff00; pointer-events: none; z-index: 10; text-shadow: 2px 2px #000; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; text-align: center; padding: 20px; }
+        button { padding: 15px 40px; font-size: 22px; cursor: pointer; background: #00ff00; border: none; font-weight: bold; border-radius: 50px; box-shadow: 0 0 20px #00ff00; }
+        .hud-top { display: flex; justify-content: space-around; width: 100%; font-size: 18px; background: rgba(0,0,0,0.5); padding: 10px 0; }
+        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 100px; height: 100px; z-index: 20; opacity: 0.6; }
+        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 2px solid rgba(0,255,0,0.5); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1>FÁBRICA TAYLORISTA 3D</h1>
-        <p>Projeto de Turma - Simulação de Eficiência</p>
-        <button onclick="startApp()">INICIAR SISTEMA</button>
+        <h1 style="color:#00ff00">OPERÁRIO PADRÃO TAYLOR</h1>
+        <p>OBJETIVO: Encontre as máquinas com falha (VERMELHAS) e clique nelas para otimizar a produção.</p>
+        <p style="font-size: 14px; color: #aaa;">"No passado, o homem vinha primeiro; no futuro, o sistema deve vir primeiro." - F. Taylor</p>
+        <button onclick="startApp()">INICIAR TURNO</button>
     </div>
 
     <div id="ui">
-        <div id="timer" style="font-size: 28px; text-shadow: 2px 2px #000;">PRODUÇÃO: 00:00</div>
-        <div style="color: #ccc; font-size: 12px;">MODO: ANÁLISE DE TEMPOS E MOVIMENTOS</div>
+        <div class="hud-top">
+            <div id="score">PRODUÇÃO: 0</div>
+            <div id="timer">TURNO: 01:00</div>
+        </div>
+        <p id="msg" style="color: #ffaa00; font-size: 12px; margin-top: 5px;">MÁQUINAS RESTANTES: 5</p>
     </div>
 
-    <div class="paineis" style="top: 80px; left: 10px;">
-        <b>O QUE É?</b><br>O Taylorismo foca na máxima eficiência dividindo tarefas em passos simples e repetitivos.
-    </div>
-    <div class="paineis" style="top: 180px; left: 10px;">
-        <b>PADRONIZAÇÃO</b><br>Cada máquina opera no mesmo ritmo. O trabalhador torna-se parte da engrenagem.
-    </div>
-
+    <div class="crosshair"></div>
     <div id="joy-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.1/dist/nipplejs.min.js"></script>
 
     <script>
-        let audioCtx, oscillator;
+        let scene, camera, renderer, joy, machines = [], score = 0, targetsLeft = 5;
+        let moveF = 0, moveR = 0, yaw = 0, pitch = 0;
 
         function startApp() {
             document.getElementById('overlay').style.display = 'none';
-            playFactorySound();
             init();
-        }
-
-        // Som de Fábrica (Sintetizado para não precisar de arquivo externo)
-        function playFactorySound() {
-            const context = new (window.AudioContext || window.webkitAudioContext)();
-            const gain = context.createGain();
-            gain.gain.value = 0.05;
-            gain.connect(context.destination);
-
-            setInterval(() => {
-                const osc = context.createOscillator();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(40 + Math.random() * 20, context.currentTime);
-                osc.connect(gain);
-                osc.start();
-                osc.stop(context.currentTime + 0.1);
-            }, 800);
+            startTimer();
         }
 
         function init() {
-            const scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x111111);
-            scene.fog = new THREE.Fog(0x111111, 5, 45);
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+            scene.fog = new THREE.Fog(0x0a0a0a, 5, 50);
 
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 1.7, 10);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 1.7, 5);
 
-            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.toneMapping = THREE.ReinhardToneMapping;
             document.body.appendChild(renderer.domElement);
 
-            // Luzes Realistas
-            const light = new THREE.SpotLight(0xffffff, 1.5);
-            light.position.set(0, 20, 10);
-            scene.add(light);
-            scene.add(new THREE.AmbientLight(0x333333));
+            // LUZES DE FÁBRICA
+            const ambient = new THREE.AmbientLight(0x404040, 0.5);
+            scene.add(ambient);
 
-            // CHÃO TEXTURIZADO (Aço Metalizado)
-            const floorGeo = new THREE.PlaneGeometry(200, 200);
-            const floorMat = new THREE.MeshStandardMaterial({ 
-                color: 0x222222, 
-                metalness: 0.8, 
-                roughness: 0.2 
-            });
+            const pointLight = new THREE.PointLight(0x00ff00, 1, 50);
+            pointLight.position.set(0, 10, 0);
+            scene.add(pointLight);
+
+            // CHÃO DE METAL COM REFLEXO
+            const floorGeo = new THREE.PlaneGeometry(100, 100);
+            const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1 });
             const floor = new THREE.Mesh(floorGeo, floorMat);
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            // Grade no chão para profundidade
-            const grid = new THREE.GridHelper(200, 60, 0x00ff00, 0x111111);
-            grid.position.y = 0.01;
+            const grid = new THREE.GridHelper(100, 40, 0x00ff00, 0x222222);
             scene.add(grid);
 
-            // MÁQUINAS TEXTURIZADAS (Prensas)
-            const machines = [];
-            for(let i=0; i<30; i++) {
-                const group = new THREE.Group();
-                
-                // Base da Máquina (Metal pesado)
-                const base = new THREE.Mesh(
-                    new THREE.BoxGeometry(2, 0.5, 2),
-                    new THREE.MeshStandardMaterial({color: 0x444444, metalness: 0.9})
-                );
-                group.add(base);
-
-                // Colunas
-                const col = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0.1, 0.1, 4),
-                    new THREE.MeshStandardMaterial({color: 0x888888})
-                );
-                col.position.y = 2;
-                group.add(col);
-
-                // Prensa (A parte que sobe e desce)
-                const press = new THREE.Mesh(
-                    new THREE.BoxGeometry(1.8, 0.8, 1.8),
-                    new THREE.MeshStandardMaterial({color: 0x00ff00, emissive: 0x002200})
-                );
-                press.position.y = 3;
-                group.add(press);
-
-                group.position.set((Math.random()-0.5)*80, 0.25, (Math.random()-0.5)*80);
-                scene.add(group);
-                machines.push(press);
+            // CRIAÇÃO DAS MÁQUINAS COMPLEXAS
+            for(let i=0; i<15; i++) {
+                createMachine(i);
             }
 
-            // CONTROLES
-            let moveF = 0, moveR = 0;
-            let yaw = 0, pitch = 0;
+            setupControls();
+            animate();
+        }
 
-            const joy = nipplejs.create({ zone: document.getElementById('joy-container'), mode: 'static', position: {left: '50px', bottom: '50px'}, size: 80 });
+        function createMachine(id) {
+            const group = new THREE.Group();
+            
+            // Base da Prensa
+            const base = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 2), new THREE.MeshStandardMaterial({color: 0x333333}));
+            group.add(base);
+
+            // Cilindro central
+            const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3), new THREE.MeshStandardMaterial({color: 0x555555}));
+            cylinder.position.y = 1.5;
+            group.add(cylinder);
+
+            // Pistão de Cor (Objetivo)
+            const isTarget = id < 5;
+            const piston = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 1.2), new THREE.MeshStandardMaterial({
+                color: isTarget ? 0xff0000 : 0x00ff00,
+                emissive: isTarget ? 0x330000 : 0x001100
+            }));
+            piston.position.y = 3;
+            piston.userData = { id: id, broken: isTarget };
+            group.add(piston);
+
+            group.position.set((Math.random()-0.5)*40, 0.25, (Math.random()-0.5)*40);
+            scene.add(group);
+            machines.push(piston);
+        }
+
+        function setupControls() {
+            // Joystick
+            joy = nipplejs.create({ zone: document.getElementById('joy-container'), mode: 'static', position: {left: '50px', bottom: '50px'}, size: 80 });
             joy.on('move', (e, d) => {
                 moveF = Math.sin(d.angle.radian) * d.distance / 40;
                 moveR = Math.cos(d.angle.radian) * d.distance / 40;
             });
             joy.on('end', () => { moveF = 0; moveR = 0; });
 
+            // Toque para Olhar e Clicar
             let lastX = 0, lastY = 0;
+            window.addEventListener('touchstart', (e) => {
+                if (e.touches[0].clientX > window.innerWidth / 2) {
+                    checkInteraction();
+                }
+            });
+
             window.addEventListener('touchmove', (e) => {
                 const t = e.touches[0];
                 if (t.clientX > window.innerWidth / 2) {
@@ -156,32 +143,63 @@
                 }
             });
             window.addEventListener('touchend', () => { lastX = 0; lastY = 0; });
-
-            // CRONÔMETRO
-            let sec = 0;
-            setInterval(() => {
-                sec++;
-                const m = Math.floor(sec/60).toString().padStart(2,'0');
-                const s = (sec%60).toString().padStart(2,'0');
-                document.getElementById('timer').innerText = `PRODUÇÃO: ${m}:${s}`;
-            }, 1000);
-
-            function animate() {
-                requestAnimationFrame(animate);
-                camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
-                const dir = new THREE.Vector3(moveR, 0, -moveF).applyQuaternion(camera.quaternion);
-                dir.y = 0;
-                camera.position.addScaledVector(dir, 0.12);
-
-                // Animação das Prensas (Ritmo de Taylor)
-                machines.forEach((m, i) => {
-                    m.position.y = 2.5 + Math.sin(Date.now() * 0.004 + i) * 1.5;
-                });
-
-                renderer.render(scene, camera);
-            }
-            animate();
         }
+
+        function checkInteraction() {
+            // Raio de detecção (Raycaster)
+            const raycaster = new THREE.Raycaster();
+            const center = new THREE.Vector2(0, 0); // Centro da tela
+            raycaster.setFromCamera(center, camera);
+
+            const intersects = raycaster.intersectObjects(machines);
+            if (intersects.length > 0) {
+                const obj = intersects[0].object;
+                if (obj.userData.broken) {
+                    obj.material.color.set(0x00ff00);
+                    obj.userData.broken = false;
+                    targetsLeft--;
+                    score += 100;
+                    document.getElementById('score').innerText = `PRODUÇÃO: ${score}`;
+                    document.getElementById('msg').innerText = `MÁQUINAS RESTANTES: ${targetsLeft}`;
+                    if(targetsLeft <= 0) alert("EFICIÊNCIA MÁXIMA ATINGIDA! Taylor ficaria orgulhoso.");
+                }
+            }
+        }
+
+        function startTimer() {
+            let time = 60;
+            const t = setInterval(() => {
+                time--;
+                document.getElementById('timer').innerText = `TURNO: 00:${time < 10 ? '0'+time : time}`;
+                if (time <= 0) {
+                    clearInterval(t);
+                    alert("FIM DO TURNO! Produção total: " + score);
+                    location.reload();
+                }
+            }, 1000);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+            const dir = new THREE.Vector3(moveR, 0, -moveF).applyQuaternion(camera.quaternion);
+            dir.y = 0;
+            camera.position.addScaledVector(dir, 0.15);
+
+            // Animação das Prensas
+            machines.forEach((m, i) => {
+                const speed = m.userData.broken ? 0.01 : 0.005;
+                m.position.y = 2.5 + Math.sin(Date.now() * speed + i) * 1.0;
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
     </script>
 </body>
 </html>

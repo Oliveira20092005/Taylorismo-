@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Fábrica Taylorista 3D - Versão Completa</title>
+  <title>Fábrica Taylorista 3D - Versão Final</title>
   <style>
     * {
       box-sizing: border-box;
@@ -22,66 +22,60 @@
 
     canvas { display: block; }
 
-    #hud {
+    /* Barra compacta no topo */
+    #topBar {
       position: fixed;
       top: 10px;
-      left: 10px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 30;
-      width: min(410px, calc(100vw - 20px));
-      background: rgba(7, 16, 30, 0.92);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 20px;
-      padding: 14px 16px;
+      width: min(96vw, 760px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 18px;
+      background: rgba(7, 16, 30, 0.84);
+      border: 1px solid rgba(255,255,255,0.14);
       backdrop-filter: blur(10px);
-      box-shadow: 0 18px 40px rgba(0,0,0,0.45);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      font-size: 13px;
+      color: #e2e8f0;
     }
 
-    #hud h1 {
-      margin: 0 0 8px;
-      font-size: 22px;
-      color: #93c5fd;
+    #topBar .leftInfo,
+    #topBar .rightInfo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    #hud p {
-      margin: 6px 0;
-      font-size: 14px;
-      line-height: 1.45;
-      color: #f1f5f9;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 6px 12px;
+    .topBadge {
+      padding: 6px 10px;
       border-radius: 999px;
       background: rgba(37,99,235,0.18);
-      border: 1px solid rgba(147,197,253,0.28);
+      border: 1px solid rgba(147,197,253,0.25);
       color: #dbeafe;
-      font-size: 12px;
-      margin-bottom: 10px;
       font-weight: bold;
+      white-space: nowrap;
     }
 
-    #progress {
-      width: 100%;
-      height: 12px;
-      margin-top: 10px;
-      background: rgba(255,255,255,0.08);
+    .miniProgress {
+      width: 120px;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
       border-radius: 999px;
       overflow: hidden;
       border: 1px solid rgba(255,255,255,0.08);
     }
 
-    #progressFill {
+    .miniProgressFill {
       width: 0%;
       height: 100%;
       background: linear-gradient(90deg, #22c55e, #38bdf8, #2563eb);
       transition: width 0.35s ease;
-    }
-
-    #scoreLine {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #bfdbfe;
     }
 
     #prompt {
@@ -141,7 +135,7 @@
     .card ul { padding-left: 22px; }
 
     .heroTitle {
-      font-size: clamp(28px, 5vw, 46px);
+      font-size: clamp(28px, 5vw, 48px);
       line-height: 1.05;
       margin: 0 0 10px;
       color: #e0f2fe;
@@ -155,7 +149,7 @@
 
     .menuGrid {
       display: grid;
-      grid-template-columns: 1.2fr 1fr;
+      grid-template-columns: 1.15fr 1fr;
       gap: 18px;
     }
 
@@ -238,8 +232,6 @@
 
     #joystickBase {
       position: absolute;
-      left: 24px;
-      bottom: 24px;
       width: 132px;
       height: 132px;
       border-radius: 50%;
@@ -296,10 +288,29 @@
       box-shadow: 0 10px 28px rgba(0,0,0,0.3);
     }
 
+    #fullscreenBtn {
+      position: absolute;
+      right: 20px;
+      bottom: 210px;
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: rgba(37,99,235,0.95);
+      border: 2px solid rgba(255,255,255,0.18);
+      color: white;
+      font-size: 21px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.3);
+    }
+
     #cameraLabel {
       position: absolute;
       right: 18px;
-      top: 18px;
+      top: 52px;
       background: rgba(15,23,42,0.62);
       border: 1px solid rgba(255,255,255,0.08);
       color: #dbeafe;
@@ -327,18 +338,37 @@
     }
 
     .gradeBox {
-      margin-top: 12px;
-      padding: 14px;
-      border-radius: 16px;
-      background: rgba(15,23,42,0.5);
+      margin-top: 14px;
+      padding: 18px;
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(15,23,42,0.66), rgba(30,41,59,0.66));
       border: 1px solid rgba(255,255,255,0.1);
     }
 
     .bigGrade {
-      font-size: clamp(34px, 7vw, 58px);
+      font-size: clamp(34px, 7vw, 62px);
       color: #facc15;
       font-weight: bold;
       margin: 8px 0;
+    }
+
+    .finalCredits {
+      margin-top: 18px;
+      padding: 16px;
+      border-radius: 16px;
+      background: rgba(37,99,235,0.14);
+      border: 1px solid rgba(147,197,253,0.2);
+    }
+
+    .finalCredits h3 {
+      margin: 0 0 8px;
+      color: #dbeafe;
+      font-size: 20px;
+    }
+
+    .finalCredits p {
+      margin: 4px 0;
+      color: #e2e8f0;
     }
 
     @media (max-width: 850px) {
@@ -348,21 +378,20 @@
     }
 
     @media (min-width: 900px) {
-      #touchHint, #cameraLabel, #miniTips {
+      #touchHint, #cameraLabel, #miniTips, #fullscreenBtn {
         display: none !important;
       }
     }
 
-    @media (max-width: 700px) {
-      #hud {
-        width: calc(100vw - 20px);
-        left: 10px;
-        top: 10px;
-        padding: 12px;
+    @media (max-width: 740px) {
+      #topBar {
+        width: calc(100vw - 16px);
+        padding: 10px 12px;
+        gap: 8px;
+        font-size: 12px;
       }
 
-      #hud h1 { font-size: 18px; }
-      #hud p { font-size: 13px; }
+      .miniProgress { width: 90px; }
       .card { padding: 18px; }
       .card h2 { font-size: 24px; }
       .card p, .card li { font-size: 15px; }
@@ -370,15 +399,15 @@
   </style>
 </head>
 <body>
-  <div id="hud">
-    <div class="badge">Jogo educativo 3D em HTML</div>
-    <h1>Fábrica Taylorista</h1>
-    <p><strong>Objetivo:</strong> explore a fábrica, visite as 4 estações, observe os operários e complete o quiz final.</p>
-    <p><strong>PC:</strong> WASD para andar, mouse para câmera 360°, Shift para correr, E para interagir.</p>
-    <p><strong>Celular:</strong> joystick esquerdo para andar, arraste o lado direito para girar a câmera 360°, botão verde para interagir.</p>
-    <p id="statusText">Estações visitadas: 0/4</p>
-    <div id="progress"><div id="progressFill"></div></div>
-    <div id="scoreLine">Quiz: 0/10 | Nota: 0,0</div>
+  <div id="topBar">
+    <div class="leftInfo">
+      <div class="topBadge">Fábrica Taylorista 3D</div>
+      <div id="statusText">0/4 estações</div>
+      <div class="miniProgress"><div id="progressFill" class="miniProgressFill"></div></div>
+    </div>
+    <div class="rightInfo">
+      <div id="scoreLine">Quiz 0/10 • Nota 0,0</div>
+    </div>
   </div>
 
   <div id="prompt"></div>
@@ -387,27 +416,27 @@
     <div class="card">
       <div class="menuGrid">
         <div class="panelBox">
-          <div class="badge">Versão completa</div>
+          <div class="topBadge">Versão final para apresentação</div>
           <h1 class="heroTitle">FÁBRICA<br>TAYLORISTA 3D</h1>
           <p class="heroSub">
-            Um jogo educativo em terceira pessoa sobre o Taylorismo, com estações de aprendizagem,
-            NPCs operários, esteiras animadas, quiz de 10 perguntas e nota final.
+            Jogo educativo em terceira pessoa sobre Taylorismo, com exploração da fábrica,
+            estações explicativas, NPCs animados e quiz final de 10 perguntas.
           </p>
           <div class="buttons">
-            <button id="startBtn" class="green">Entrar na fábrica</button>
+            <button id="startBtn" class="green">Iniciar apresentação</button>
             <button id="audioBtn" class="gold">Ativar som</button>
           </div>
         </div>
 
         <div class="panelBox">
-          <h2 style="font-size:24px;">O que você vai aprender</h2>
+          <h2 style="font-size:24px;">Conteúdo do trabalho</h2>
           <ul>
-            <li>o que é o Taylorismo;</li>
+            <li>conceito de Taylorismo;</li>
             <li>divisão e especialização do trabalho;</li>
             <li>controle do tempo e dos movimentos;</li>
             <li>vantagens e críticas do sistema.</li>
           </ul>
-          <p><strong>Dica:</strong> visite todas as estações antes de ir ao terminal do quiz.</p>
+          <p><strong>Objetivo:</strong> visitar todas as 4 estações e concluir o quiz final.</p>
         </div>
       </div>
     </div>
@@ -438,11 +467,11 @@
 
   <div id="victoryPanel">
     <div class="card">
-      <h2>Atividade concluída</h2>
+      <h2>Apresentação concluída</h2>
       <div id="victoryContent"></div>
       <div class="buttons">
         <button id="continueBtn" class="green">Voltar ao jogo</button>
-        <button id="restartBtn">Reiniciar quiz</button>
+        <button id="restartBtn">Refazer quiz</button>
       </div>
     </div>
   </div>
@@ -455,17 +484,18 @@
       <div id="joystickKnob"></div>
     </div>
 
-    <div id="touchHint">Arraste aqui para mover a câmera</div>
+    <div id="touchHint">Arraste à direita para mover a câmera</div>
     <div id="cameraLabel">Câmera 360°</div>
     <div id="miniTips">Use o analógico para andar</div>
     <div id="interactBtn">E</div>
+    <div id="fullscreenBtn">⛶</div>
   </div>
 
   <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
 
     let scene, camera, renderer, clock;
-    let player, playerVisual, head;
+    let player, playerVisual;
     let isMenuOpen = true;
     let currentInteractable = null;
     let visitedStations = new Set();
@@ -474,6 +504,7 @@
     let conveyorBelts = [];
     let boxesOnBelts = [];
     let npcs = [];
+    let sceneObjects = [];
 
     let audioCtx = null;
     let audioEnabled = false;
@@ -497,7 +528,7 @@
     };
 
     let yaw = Math.PI;
-    let pitch = -0.3;
+    let pitch = -0.28;
 
     const cameraState = {
       currentPos: new THREE.Vector3(),
@@ -531,6 +562,7 @@
     const rightZone = document.getElementById("rightZone");
     const interactBtn = document.getElementById("interactBtn");
     const miniTips = document.getElementById("miniTips");
+    const fullscreenBtn = document.getElementById("fullscreenBtn");
 
     const stations = [
       {
@@ -646,10 +678,11 @@
       createNPCs();
       addEventListeners();
       updateScoreHud();
+      updateProgress();
 
       if (isTouchDevice) {
         miniTips.style.display = "block";
-        setTimeout(() => miniTips.style.display = "none", 3500);
+        setTimeout(() => miniTips.style.display = "none", 3200);
       }
     }
 
@@ -671,7 +704,7 @@
       p1.position.set(-24, 12, 0);
       scene.add(p1);
 
-      const p2 = new THREE.PointLight(0x60a5fa, 20, 48, 2);
+      const p2 = new THREE.PointLight(0xf472b6, 14, 36, 2);
       p2.position.set(24, 12, 0);
       scene.add(p2);
 
@@ -700,6 +733,7 @@
       const wallMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.84, metalness: 0.16 });
       const beamMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.55, metalness: 0.68 });
       const machineMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.35, metalness: 0.75 });
+      const pinkMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.65, metalness: 0.18 });
       const yellowMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.75, metalness: 0.2 });
       const darkMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.88, metalness: 0.12 });
 
@@ -750,7 +784,6 @@
           roller.rotation.z = Math.PI / 2;
           roller.position.set(i * 6, 1.03, j);
           roller.castShadow = true;
-          roller.userData.isRoller = true;
           scene.add(roller);
         }
 
@@ -778,14 +811,14 @@
         [-26, 2, 0], [26, 2, 0], [0, 2, -26], [0, 2, 26]
       ];
 
-      machinePositions.forEach(([x, y, z]) => {
+      machinePositions.forEach(([x, y, z], index) => {
         const base = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 6), machineMat);
         base.position.set(x, y, z);
         base.castShadow = true;
         base.receiveShadow = true;
         scene.add(base);
 
-        const top = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 4), yellowMat);
+        const top = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 4), index % 2 === 0 ? yellowMat : pinkMat);
         top.position.set(x, y + 2.5, z);
         top.castShadow = true;
         scene.add(top);
@@ -839,70 +872,93 @@
       scene.add(plane);
     }
 
-    function makeUniformTexture() {
+    /* Uniforme inspirado no modelo oficial divulgado pela Rede Estadual do ES:
+       azul escuro predominante, detalhes rosa e branco */
+    function makeOfficialUniformTexture(front = true) {
       const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 512;
+      canvas.width = 1024;
+      canvas.height = 1024;
       const ctx = canvas.getContext("2d");
 
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(0, 0, 512, 512);
+      // base azul escuro
+      ctx.fillStyle = "#1f3559";
+      ctx.fillRect(0, 0, 1024, 1024);
 
-      ctx.fillStyle = "#2563eb";
-      ctx.fillRect(0, 95, 512, 74);
+      // faixa branca superior
+      ctx.fillStyle = "#f8fafc";
+      ctx.fillRect(0, 70, 1024, 150);
 
-      ctx.fillStyle = "#1d4ed8";
-      ctx.fillRect(0, 174, 512, 16);
+      // filete rosa
+      ctx.fillStyle = "#f472b6";
+      ctx.fillRect(0, 220, 1024, 18);
 
-      ctx.fillStyle = "#e2e8f0";
-      ctx.fillRect(160, 0, 192, 70);
-
-      ctx.fillStyle = "#2563eb";
+      // gola
+      ctx.fillStyle = "#1f3559";
       ctx.beginPath();
-      ctx.moveTo(256, 25);
-      ctx.lineTo(230, 70);
-      ctx.lineTo(282, 70);
+      ctx.moveTo(512, 40);
+      ctx.lineTo(455, 132);
+      ctx.lineTo(569, 132);
       ctx.closePath();
       ctx.fill();
 
-      ctx.fillStyle = "#0f172a";
+      // pequeno símbolo/brasão estilizado
+      ctx.fillStyle = "#ffffff";
       ctx.beginPath();
-      ctx.arc(118, 132, 28, 0, Math.PI * 2);
+      ctx.arc(175, 145, 48, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 22px Arial";
+      ctx.fillStyle = "#1f3559";
+      ctx.font = "bold 34px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText("ES", 118, 132);
+      ctx.fillText("ES", 175, 145);
 
-      ctx.strokeStyle = "rgba(37,99,235,0.3)";
-      ctx.lineWidth = 3;
-      for (let y = 220; y < 500; y += 34) {
+      // detalhe geométrico moderno
+      ctx.strokeStyle = "rgba(255,255,255,0.07)";
+      ctx.lineWidth = 4;
+      for (let y = 280; y < 980; y += 56) {
         ctx.beginPath();
-        ctx.moveTo(35, y);
-        ctx.lineTo(477, y);
+        ctx.moveTo(70, y);
+        ctx.lineTo(954, y);
         ctx.stroke();
       }
 
-      return new THREE.CanvasTexture(canvas);
+      if (!front) {
+        ctx.fillStyle = "#f8fafc";
+        ctx.fillRect(250, 96, 524, 66);
+        ctx.fillStyle = "#1f3559";
+        ctx.font = "bold 34px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("REDE ESTADUAL ES", 512, 129);
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
     }
 
-    function createHumanoid(scale = 1, skinColor = 0xf1c27d, shirtTexture = null, shirtColor = 0xffffff, pantsColor = 0x1e3a8a) {
+    function createHumanoid(scale = 1, skinColor = 0xf1c27d, frontTexture = null, backTexture = null, pantsColor = 0x1e3a8a) {
       const group = new THREE.Group();
       const skinMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.82 });
       const hairMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.92 });
-      const shirtMat = shirtTexture
-        ? new THREE.MeshStandardMaterial({ map: shirtTexture, roughness: 0.72, metalness: 0.03 })
-        : new THREE.MeshStandardMaterial({ color: shirtColor, roughness: 0.74 });
+      const sleeveMat = new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72, metalness: 0.03 });
       const pantsMat = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.78 });
       const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
+
+      const torsoMats = [
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // right
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // left
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // top
+        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // bottom
+        new THREE.MeshStandardMaterial({ map: frontTexture, roughness: 0.72, metalness: 0.03 }), // front
+        new THREE.MeshStandardMaterial({ map: backTexture || frontTexture, roughness: 0.72, metalness: 0.03 }) // back
+      ];
 
       const hipGroup = new THREE.Group();
       hipGroup.position.y = 0.05 * scale;
       group.add(hipGroup);
 
-      const torso = new THREE.Mesh(new THREE.BoxGeometry(1.18*scale, 1.45*scale, 0.72*scale), shirtMat);
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(1.18*scale, 1.45*scale, 0.72*scale), torsoMats);
       torso.position.y = 1.55*scale;
       torso.castShadow = true;
       hipGroup.add(torso);
@@ -944,7 +1000,7 @@
       shoulderL.position.set(-0.74*scale, 1.98*scale, 0);
       hipGroup.add(shoulderL);
 
-      const upperArmL = new THREE.Mesh(new THREE.BoxGeometry(0.28*scale, 0.78*scale, 0.28*scale), shirtMat);
+      const upperArmL = new THREE.Mesh(new THREE.BoxGeometry(0.28*scale, 0.78*scale, 0.28*scale), sleeveMat);
       upperArmL.position.y = -0.38*scale;
       upperArmL.castShadow = true;
       shoulderL.add(upperArmL);
@@ -967,7 +1023,7 @@
       shoulderR.position.set(0.74*scale, 1.98*scale, 0);
       hipGroup.add(shoulderR);
 
-      const upperArmR = new THREE.Mesh(new THREE.BoxGeometry(0.28*scale, 0.78*scale, 0.28*scale), shirtMat);
+      const upperArmR = new THREE.Mesh(new THREE.BoxGeometry(0.28*scale, 0.78*scale, 0.28*scale), sleeveMat);
       upperArmR.position.y = -0.38*scale;
       upperArmR.castShadow = true;
       shoulderR.add(upperArmR);
@@ -1041,10 +1097,10 @@
       player.position.set(0, 0, 31);
       scene.add(player);
 
-      const uniformTexture = makeUniformTexture();
-      playerVisual = createHumanoid(1, 0xf1c27d, uniformTexture, 0xffffff, 0x1e3a8a);
+      const frontTexture = makeOfficialUniformTexture(true);
+      const backTexture = makeOfficialUniformTexture(false);
+      playerVisual = createHumanoid(1, 0xf1c27d, frontTexture, backTexture, 0x1b2c49);
       player.add(playerVisual);
-      head = playerVisual.userData.rig.headGroup;
 
       updateCamera(true);
     }
@@ -1175,7 +1231,9 @@
     }
 
     function createNPCs() {
-      const uniformTexture = makeUniformTexture();
+      const frontTexture = makeOfficialUniformTexture(true);
+      const backTexture = makeOfficialUniformTexture(false);
+
       const npcPositions = [
         [-12, 0, -2], [-6, 0, 8], [6, 0, -8], [12, 0, 6]
       ];
@@ -1185,7 +1243,14 @@
         npcRoot.position.set(...pos);
         npcRoot.rotation.y = i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2;
 
-        const npc = createHumanoid(0.95, i % 2 === 0 ? 0xd9a066 : 0xf1c27d, uniformTexture, 0xffffff, 0x1e40af);
+        const npc = createHumanoid(
+          0.95,
+          i % 2 === 0 ? 0xd9a066 : 0xf1c27d,
+          frontTexture,
+          backTexture,
+          0x1b2c49
+        );
+
         npcRoot.add(npc);
         npcRoot.userData = {
           phase: i * 0.8,
@@ -1217,6 +1282,16 @@
       document.getElementById("restartBtn").addEventListener("click", () => {
         victoryPanel.style.display = "none";
         startQuiz();
+      });
+
+      fullscreenBtn.addEventListener("click", async () => {
+        try {
+          if (!document.fullscreenElement) {
+            await document.documentElement.requestFullscreen?.();
+          } else {
+            await document.exitFullscreen?.();
+          }
+        } catch (e) {}
       });
 
       document.addEventListener("keydown", (e) => {
@@ -1310,11 +1385,8 @@
           joystickKnob.style.left = (38 + dx) + "px";
           joystickKnob.style.top = (38 + dy) + "px";
 
-          const targetX = dx / maxRadius;
-          const targetY = dy / maxRadius;
-
-          mobileInput.moveX += (targetX - mobileInput.moveX) * 0.28;
-          mobileInput.moveY += (targetY - mobileInput.moveY) * 0.28;
+          mobileInput.moveX = dx / maxRadius;
+          mobileInput.moveY = dy / maxRadius;
         }
       }, { passive: true });
 
@@ -1422,23 +1494,22 @@
         quizTerminalGroup.userData.screen.emissiveIntensity = 1.0 + Math.sin(t * 3.5) * 0.18;
       }
 
-      animateBelts(t);
+      animateBelts(dt);
       animateNPCs(t);
       animatePlayerRig(t, Math.hypot(playerState.velX, playerState.velZ));
     }
 
-    function animateBelts(t) {
+    function animateBelts(dt) {
       conveyorBelts.forEach((belt, i) => {
         belt.material.emissive = new THREE.Color(0x000000);
-        belt.material.emissiveIntensity = 0.08 + Math.abs(Math.sin(t * 5 + i)) * 0.08;
+        belt.material.emissiveIntensity = 0.08 + Math.abs(Math.sin(performance.now() * 0.005 + i)) * 0.08;
       });
 
-      boxesOnBelts.forEach((box, i) => {
-        box.userData.progress += 0.18 * 0.016;
+      boxesOnBelts.forEach((box) => {
+        box.userData.progress += 0.22 * dt;
         if (box.userData.progress > 1) box.userData.progress = 0;
-        const z = -16 + box.userData.progress * 32;
-        box.position.z = z;
-        box.rotation.y += 0.01;
+        box.position.z = -16 + box.userData.progress * 32;
+        box.rotation.y += 0.8 * dt;
       });
     }
 
@@ -1505,10 +1576,8 @@
       const inputX = keyboardX + mobileInput.moveX;
       const inputY = keyboardY + mobileInput.moveY;
 
-      let len = Math.hypot(inputX, inputY);
-      let nx = 0;
-      let ny = 0;
-
+      const len = Math.hypot(inputX, inputY);
+      let nx = 0, ny = 0;
       if (len > 0.001) {
         nx = inputX / len;
         ny = inputY / len;
@@ -1640,7 +1709,7 @@
     }
 
     function updateProgress() {
-      statusText.textContent = `Estações visitadas: ${visitedStations.size}/4`;
+      statusText.textContent = `${visitedStations.size}/4 estações`;
       progressFill.style.width = `${(visitedStations.size / 4) * 100}%`;
 
       if (visitedStations.size === stations.length) {
@@ -1732,10 +1801,10 @@
       const grade = ((quizScore / quizData.length) * 10).toFixed(1).replace(".", ",");
 
       let feedback = "";
-      if (percent === 100) feedback = "Excelente! Você dominou muito bem o conteúdo.";
-      else if (percent >= 80) feedback = "Muito bom! Você entendeu muito bem o Taylorismo.";
-      else if (percent >= 60) feedback = "Bom resultado! Você aprendeu os pontos principais.";
-      else feedback = "Você concluiu a atividade, mas pode revisar as estações para melhorar.";
+      if (percent === 100) feedback = "Excelente! Vocês dominaram muito bem o conteúdo.";
+      else if (percent >= 80) feedback = "Muito bom! Vocês entenderam muito bem o Taylorismo.";
+      else if (percent >= 60) feedback = "Bom resultado! Os pontos principais foram aprendidos.";
+      else feedback = "A atividade foi concluída. Vale revisar as estações para melhorar ainda mais.";
 
       victoryContent.innerHTML = `
         <p><strong>Resultado do quiz:</strong> ${quizScore}/${quizData.length} (${percent}%)</p>
@@ -1744,16 +1813,22 @@
           <div class="bigGrade">${grade}</div>
           <div>${feedback}</div>
         </div>
-        <p style="margin-top:16px;">
-          Você concluiu o jogo sobre o <strong>Taylorismo</strong> e aprendeu:
-        </p>
+
+        <div class="finalCredits">
+          <h3>Turma e Grupo</h3>
+          <p><strong>Série/Turma:</strong> 2M01 LG</p>
+          <p><strong>Grupo:</strong> Henry, Otávio, Daniel, Bruno e Adrian</p>
+        </div>
+
+        <p style="margin-top:16px;"><strong>Resumo do conteúdo apresentado:</strong></p>
         <ul>
           <li>o conceito de Administração Científica;</li>
           <li>a divisão e especialização do trabalho;</li>
           <li>o controle do tempo e dos movimentos;</li>
-          <li>as vantagens e críticas desse sistema.</li>
+          <li>as vantagens e críticas do Taylorismo.</li>
         </ul>
-        <p><strong>Parabéns pela atividade!</strong></p>
+
+        <p><strong>Trabalho concluído com sucesso.</strong></p>
       `;
       victoryPanel.style.display = "flex";
 
@@ -1762,8 +1837,8 @@
     }
 
     function updateScoreHud() {
-      const grade = ((quizScore / quizData.length) * 10);
-      scoreLine.textContent = `Quiz: ${quizScore}/10 | Nota: ${grade.toFixed(1).replace(".", ",")}`;
+      const grade = (quizScore / quizData.length) * 10;
+      scoreLine.textContent = `Quiz ${quizScore}/10 • Nota ${grade.toFixed(1).replace(".", ",")}`;
     }
 
     function isAnyPanelOpen() {

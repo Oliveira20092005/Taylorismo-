@@ -3,207 +3,145 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylorismo 1900: A Era Mecânica</title>
+    <title>Taylorismo: Minecraft Edition</title>
     <style>
-        body { margin: 0; background: #222; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; }
-        
-        /* Filtro de Filme Antigo (Vintage) */
-        #viewport-container { 
-            width: 100vw; height: 100vh; 
-            filter: sepia(0.3) contrast(1.1) brightness(0.9);
-        }
-        #grain {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: url('https://www.transparenttextures.com/patterns/stardust.png');
-            opacity: 0.12; pointer-events: none; z-index: 50;
-        }
-
-        /* Interface Retrô (HUD) */
-        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #d4af37; pointer-events: none; z-index: 10; text-shadow: 1px 1px #000; }
-        .hud-top { display: flex; justify-content: space-around; width: 100%; font-size: 18px; background: rgba(46, 34, 20, 0.8); border-bottom: 2px solid #5d4037; padding: 10px 0; }
-        
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #1a1510; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: #e2c08d; text-align: center; padding: 20px; border: 15px double #5d4037; box-sizing: border-box; }
-        button { padding: 15px 40px; font-size: 20px; cursor: pointer; background: #5d4037; color: white; border: 3px double #d4af37; text-transform: uppercase; font-family: serif; }
-        
-        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 110px; height: 110px; z-index: 20; opacity: 0.4; border: 2px solid #d4af37; border-radius: 50%; }
-        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 1px solid rgba(212,175,55,0.5); transform: translate(-50%, -50%); pointer-events: none; }
+        body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Courier New', monospace; }
+        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; image-rendering: pixelated; }
+        /* Mira Estilo Minecraft */
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 2px solid white; transform: translate(-50%, -50%); pointer-events: none; }
+        #joy-container { position: absolute; bottom: 40px; left: 40px; width: 100px; height: 100px; z-index: 20; background: rgba(0,0,0,0.3); border-radius: 10px; border: 2px solid #555; }
+        /* Filtro de Pixel Art */
+        canvas { image-rendering: pixelated; }
     </style>
 </head>
 <body>
 
-    <div id="grain"></div>
-    <div id="overlay">
-        <h1 style="letter-spacing: 3px;">OFICINA MECÂNICA TAYLOR</h1>
-        <p style="font-style: italic;">Turno de 60 segundos iniciado.</p>
-        <p>REQUISITO: Sincronize as 5 prensas de vapor com falha (Vermelhas).</p>
-        <button onclick="startApp()">Acionar Vapor</button>
-    </div>
-
     <div id="ui">
-        <div class="hud-top">
-            <div id="score">COTAS: 0</div>
-            <div id="timer">RELÓGIO: 60s</div>
-        </div>
-        <p id="msg" style="color: #d4af37; font-size: 14px; margin-top: 5px;">Máquinas desajustadas: 5</p>
+        <h2 style="margin:0; background: rgba(0,0,0,0.5); display: inline-block; padding: 5px;">TURNO TAYLORISTA</h2>
+        <div id="stats" style="font-size: 18px;">ITENS PRODUZIDOS: 0</div>
     </div>
 
-    <div class="crosshair"></div>
+    <div id="crosshair"></div>
     <div id="joy-container"></div>
-    <div id="viewport-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.1/dist/nipplejs.min.js"></script>
 
     <script>
-        let scene, camera, renderer, joy, machines = [], operarios = [], score = 0, targetsLeft = 5;
+        let scene, camera, renderer, joy, score = 0;
         let moveF = 0, moveR = 0, yaw = 0, pitch = 0;
+        let workers = [];
 
-        function startApp() {
-            document.getElementById('overlay').style.display = 'none';
-            init();
-            startTimer();
-        }
+        init();
+        animate();
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x1a1510);
-            scene.fog = new THREE.Fog(0x1a1510, 2, 40);
+            scene.background = new THREE.Color(0x050505);
+            scene.fog = new THREE.Fog(0x050505, 2, 25);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            document.getElementById('viewport-container').appendChild(renderer.domElement);
+            camera.position.set(0, 1.6, 5);
 
-            // Luzes Quentes (Filamento de Carbono)
-            const ambient = new THREE.AmbientLight(0x443322, 1);
+            renderer = new THREE.WebGLRenderer({ antialias: false }); // Antialias OFF para parecer Minecraft
+            renderer.setSize(window.innerWidth / 2, window.innerHeight / 2, false); // Renderiza metade do tamanho
+            renderer.domElement.style.width = '100vw'; // Estica para dar efeito pixelado
+            renderer.domElement.style.height = '100vh';
+            document.body.appendChild(renderer.domElement);
+
+            // 1. ILUMINAÇÃO (Estilo Tocha)
+            const ambient = new THREE.AmbientLight(0x222222);
             scene.add(ambient);
-            
-            const lamp = new THREE.PointLight(0xffcc88, 2, 30);
-            lamp.position.set(0, 10, 0);
-            scene.add(lamp);
 
-            // CHÃO: Concreto Gasto e Madeira Suja
-            const floorMat = new THREE.MeshStandardMaterial({ 
-                color: 0x2e2214, 
-                roughness: 1, 
-                metalness: 0
-            });
-            const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), floorMat);
-            floor.rotation.x = -Math.PI / 2;
-            scene.add(floor);
-
-            // Adicionar vigas de madeira no chão para textura
-            const beamGeo = new THREE.BoxGeometry(0.2, 0.01, 100);
-            const beamMat = new THREE.MeshBasicMaterial({color: 0x111111});
-            for(let i=-50; i<50; i+=2) {
-                const beam = new THREE.Mesh(beamGeo, beamMat);
-                beam.position.set(i, 0.01, 0);
-                scene.add(beam);
+            function createTorch(x, z) {
+                const light = new THREE.PointLight(0xffaa44, 2, 12);
+                light.position.set(x, 2.5, z);
+                scene.add(light);
+                
+                // Suporte da Tocha
+                const stick = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.5, 0.2), new THREE.MeshStandardMaterial({color: 0x442200}));
+                stick.position.set(x, 2.3, z);
+                scene.add(stick);
             }
 
-            // --- CRIAÇÃO DOS OPERÁRIOS E MÁQUINAS (ESTILO 1900) ---
-            for(let i=0; i<20; i++) {
-                createMachineAndWorker(i);
+            // Espalhar tochas pelo corredor
+            for(let i = -20; i <= 20; i += 8) {
+                createTorch(-4.8, i);
+                createTorch(4.8, i);
+            }
+
+            // 2. O CORREDOR/GALPÃO (Minecraft Style)
+            const blockMat = new THREE.MeshStandardMaterial({ color: 0x444444 }); // Pedra/Cobblestone
+            
+            // Chão e Teto
+            for(let x = -5; x <= 5; x++) {
+                for(let z = -30; z <= 30; z++) {
+                    const floorBlock = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), blockMat);
+                    floorBlock.position.set(x, -0.5, z);
+                    scene.add(floorBlock);
+
+                    const ceilBlock = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), blockMat);
+                    ceilBlock.position.set(x, 4.5, z);
+                    scene.add(ceilBlock);
+                }
+            }
+
+            // Paredes Laterais
+            for(let y = 0; y <= 4; y++) {
+                for(let z = -30; z <= 30; z++) {
+                    const wallL = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), blockMat);
+                    wallL.position.set(-5.5, y, z);
+                    scene.add(wallL);
+
+                    const wallR = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), blockMat);
+                    wallR.position.set(5.5, y, z);
+                    scene.add(wallR);
+                }
+            }
+
+            // 3. OPERÁRIOS E MÁQUINAS (Blocos)
+            for(let i = 0; i < 10; i++) {
+                createWorker( (i%2==0 ? 3 : -3), i * -5 );
             }
 
             setupControls();
-            animate();
         }
 
-        // Função para criar Operários e Máquinas com aparência Retrô
-        function createMachineAndWorker(id) {
-            const machineGroup = new THREE.Group();
-            const machinePos = new THREE.Vector3((Math.random()-0.5)*50, 0.4, (Math.random()-0.5)*50);
+        function createWorker(x, z) {
+            const group = new THREE.Group();
             
-            // 1. A Máquina (Prensa de Vapor)
-            const matFerro = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.6 });
-            const matLatão = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, metalness: 1 });
+            // Máquina (Bigorna/Mesa)
+            const desk = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.8, 1.2), new THREE.MeshStandardMaterial({color: 0x111111}));
+            group.add(desk);
 
-            // Base de Metal Pesado
-            const base = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.8, 8), matFerro);
-            machineGroup.add(base);
+            // Operário (Corpo de Bloco)
+            const body = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.4), new THREE.MeshStandardMaterial({color: 0x3344ff})); // Camisa azul
+            body.position.set(0, 1.2, 0.8);
+            group.add(body);
 
-            // Cilindro Principal
-            const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 3), matFerro);
-            cylinder.position.y = 1.9;
-            machineGroup.add(cylinder);
+            const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshStandardMaterial({color: 0xffccaa})); // Pele
+            head.position.set(0, 1.8, 0.8);
+            group.add(head);
 
-            // Engrenagens Visíveis (Roda de Inércia)
-            const gear = new THREE.Mesh(new THREE.TorusGeometry(1, 0.1, 8, 16), matLatão);
-            gear.rotation.y = Math.PI/2;
-            gear.position.y = 2;
-            machineGroup.add(gear);
+            // Braço (O que se move)
+            const arm = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 0.2), new THREE.MeshStandardMaterial({color: 0xffccaa}));
+            arm.position.set(0.4, 1.3, 0.6);
+            group.add(arm);
 
-            // Pistão Móvel (Haste de Aço Polido)
-            const isTarget = id < 5;
-            const matHaste = new THREE.MeshStandardMaterial({ 
-                color: isTarget ? 0x990000 : 0xaaaaaa, // Alvo: Vermelho
-                metalness: 1, 
-                roughness: 0.1,
-                emissive: isTarget ? 0x220000 : 0x000000
-            });
-            const head = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 3, 8), matHaste);
-            
-            const pistonGroup = new THREE.Group();
-            pistonGroup.add(head);
-            pistonGroup.position.y = 3;
-            pistonGroup.userData = { id: id, broken: isTarget, initialY: 3, gear: gear };
-            
-            machineGroup.add(pistonGroup);
-            machineGroup.position.copy(machinePos);
-            scene.add(machineGroup);
-            machines.push(pistonGroup);
-
-            // 2. O Operário (Modelo Simples de Época)
-            const workerGroup = new THREE.Group();
-            
-            // Macacão/Roupas de Ferroviário (Marrom sujo)
-            const workerMat = new THREE.MeshStandardMaterial({ color: 0x3d2b1f });
-            
-            // Corpo e Cabeça
-            const torso = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.3), workerMat);
-            const headOp = new THREE.Mesh(new THREE.SphereGeometry(0.25), new THREE.MeshBasicMaterial({color: 0xe2c08d})); // Pele
-            headOp.position.y = 0.5;
-            
-            // Chapéu (Estilo Boater/Flat cap)
-            const hat = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.1, 8), new THREE.MeshBasicMaterial({color: 0x111111}));
-            hat.position.y = 0.7;
-            
-            // Braço que opera (Simbolizando o trabalho)
-            const arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.5, 0.1), new THREE.MeshBasicMaterial({color: 0xe2c08d}));
-            arm.position.set(0.3, 0.2, 0.1);
-            
-            workerGroup.add(torso);
-            workerGroup.add(headOp);
-            workerGroup.add(hat);
-            workerGroup.add(arm);
-            
-            // Dados para animação individual
-            workerGroup.userData = { arm: arm, initialY: 1.2, speed: 0.05 + Math.random()*0.02 };
-            
-            // Posicionar o operário em frente à máquina
-            workerGroup.position.set(machinePos.x, workerGroup.userData.initialY, machinePos.z - 1.5);
-            workerGroup.rotation.y = -Math.PI/2;
-            scene.add(workerGroup);
-            operarios.push(workerGroup);
+            group.position.set(x, 0.5, z);
+            scene.add(group);
+            workers.push({ group, arm, initialZ: arm.position.z });
         }
 
-        // --- CONTROLES MOBILE ---
         function setupControls() {
-            joy = nipplejs.create({ zone: document.getElementById('joy-container'), mode: 'static', position: {left: '55px', bottom: '55px'}, size: 85 });
+            joy = nipplejs.create({ zone: document.getElementById('joy-container'), mode: 'static', position: {left: '50px', bottom: '50px'}, size: 80 });
             joy.on('move', (e, d) => {
-                moveF = Math.sin(d.angle.radian) * d.distance / 45;
-                moveR = Math.cos(d.angle.radian) * d.distance / 45;
+                moveF = Math.sin(d.angle.radian) * d.distance / 40;
+                moveR = Math.cos(d.angle.radian) * d.distance / 40;
             });
             joy.on('end', () => { moveF = 0; moveR = 0; });
 
             let lastX = 0, lastY = 0;
-            window.addEventListener('touchstart', (e) => {
-                if (e.touches[0].clientX > window.innerWidth / 2) checkInteraction();
-            });
-
             window.addEventListener('touchmove', (e) => {
                 const t = e.touches[0];
                 if (t.clientX > window.innerWidth / 2) {
@@ -218,67 +156,22 @@
             window.addEventListener('touchend', () => { lastX = 0; lastY = 0; });
         }
 
-        function checkInteraction() {
-            const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-            const intersects = raycaster.intersectObjects(machines, true);
-            if (intersects.length > 0) {
-                let obj = intersects[0].object;
-                while(obj.parent && !obj.userData.initialY) obj = obj.parent;
-                
-                if (obj.userData.broken) {
-                    obj.children[0].material.color.set(0xaaaaaa); // Cor de aço polido
-                    obj.children[0].material.emissive.set(0x000000);
-                    obj.userData.broken = false;
-                    targetsLeft--;
-                    score += 100;
-                    document.getElementById('score').innerText = `COTAS: ${score}`;
-                    document.getElementById('msg').innerText = `Máquinas desajustadas: ${targetsLeft}`;
-                }
-            }
-        }
-
-        function startTimer() {
-            let time = 60;
-            const t = setInterval(() => {
-                if(time > 0) {
-                    time--;
-                    document.getElementById('timer').innerText = `RELÓGIO: ${time}s`;
-                } else {
-                    clearInterval(t); alert("Fim do turno! Cotas produzidas: " + score); location.reload();
-                }
-            }, 1000);
-        }
-
         function animate() {
             requestAnimationFrame(animate);
             camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+            
             const dir = new THREE.Vector3(moveR, 0, -moveF).applyQuaternion(camera.quaternion);
             dir.y = 0;
-            camera.position.addScaledVector(dir, 0.13);
-            camera.position.y = 1.7;
+            camera.position.addScaledVector(dir, 0.1);
+            camera.position.y = 1.6;
 
-            // ANIMAR MÁQUINAS E OPERÁRIOS
-            machines.forEach((p, i) => {
-                const s = p.userData.broken ? 0.008 : 0.004;
-                p.position.y = p.userData.initialY + Math.sin(Date.now() * s + i) * 1.2;
-                // Engrenagem girando
-                p.userData.gear.rotation.z += 0.01;
-            });
-
-            // ANIMAR OPERÁRIOS (Movimento repetitivo de braço)
-            operarios.forEach(op => {
-                op.userData.arm.rotation.x = Math.sin(Date.now() * op.userData.speed) * 0.5;
+            // Animar braços dos operários (Ritmo Taylorista)
+            workers.forEach((w, i) => {
+                w.arm.rotation.x = Math.sin(Date.now() * 0.01 + i) * 1;
             });
 
             renderer.render(scene, camera);
         }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>

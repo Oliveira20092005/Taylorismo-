@@ -5,14 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Fábrica Taylorista 3D</title>
   <style>
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
     html, body {
       margin: 0;
       padding: 0;
       overflow: hidden;
       font-family: Arial, Helvetica, sans-serif;
-      background: #0b1220;
+      background: #08101d;
       color: white;
       touch-action: none;
     }
@@ -21,55 +24,57 @@
 
     #hud {
       position: fixed;
-      top: 12px;
-      left: 12px;
+      top: 10px;
+      left: 10px;
       z-index: 30;
-      width: min(360px, calc(100vw - 24px));
-      background: rgba(8, 15, 30, 0.84);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 18px;
+      width: min(390px, calc(100vw - 20px));
+      background: rgba(6, 14, 30, 0.92);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 20px;
       padding: 14px 16px;
       backdrop-filter: blur(10px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      box-shadow: 0 18px 40px rgba(0,0,0,0.45);
     }
 
     #hud h1 {
       margin: 0 0 8px;
-      font-size: 20px;
-      color: #7dd3fc;
+      font-size: 22px;
+      color: #93c5fd;
     }
 
     #hud p {
       margin: 6px 0;
       font-size: 14px;
-      line-height: 1.4;
-      color: #e5e7eb;
+      line-height: 1.45;
+      color: #f1f5f9;
     }
 
     .badge {
       display: inline-block;
-      padding: 6px 10px;
+      padding: 6px 12px;
       border-radius: 999px;
-      background: rgba(59,130,246,0.14);
-      border: 1px solid rgba(125,211,252,0.22);
-      color: #bfdbfe;
+      background: rgba(37,99,235,0.18);
+      border: 1px solid rgba(147,197,253,0.28);
+      color: #dbeafe;
       font-size: 12px;
       margin-bottom: 10px;
+      font-weight: bold;
     }
 
     #progress {
       width: 100%;
-      height: 10px;
+      height: 12px;
       margin-top: 10px;
       background: rgba(255,255,255,0.08);
       border-radius: 999px;
       overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
     }
 
     #progressFill {
       width: 0%;
       height: 100%;
-      background: linear-gradient(90deg, #22c55e, #38bdf8);
+      background: linear-gradient(90deg, #22c55e, #38bdf8, #2563eb);
       transition: width 0.35s ease;
     }
 
@@ -79,15 +84,17 @@
       bottom: 20px;
       transform: translateX(-50%);
       z-index: 35;
-      background: rgba(0,0,0,0.72);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 14px;
-      padding: 10px 14px;
+      background: rgba(0,0,0,0.76);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 16px;
+      padding: 12px 16px;
       font-size: 15px;
       display: none;
       text-align: center;
-      max-width: 92vw;
+      max-width: 94vw;
       backdrop-filter: blur(4px);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
     }
 
     #overlay, #infoPanel, #quizPanel {
@@ -97,32 +104,32 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(2, 6, 23, 0.76);
-      backdrop-filter: blur(6px);
+      background: rgba(2, 6, 23, 0.82);
+      backdrop-filter: blur(7px);
       padding: 18px;
     }
 
     .card {
-      width: min(900px, 95vw);
-      max-height: 88vh;
+      width: min(980px, 96vw);
+      max-height: 90vh;
       overflow: auto;
       background: linear-gradient(180deg, rgba(30,41,59,0.98), rgba(15,23,42,0.98));
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.14);
       border-radius: 24px;
       padding: 22px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      box-shadow: 0 22px 55px rgba(0,0,0,0.52);
     }
 
     .card h2 {
       margin-top: 0;
       font-size: 28px;
-      color: #93c5fd;
+      color: #bfdbfe;
     }
 
     .card p, .card li {
       font-size: 16px;
       line-height: 1.6;
-      color: #e5e7eb;
+      color: #f1f5f9;
     }
 
     .card ul { padding-left: 22px; }
@@ -144,11 +151,21 @@
       background: #2563eb;
       color: white;
       transition: 0.2s;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
     }
 
-    button:hover { transform: translateY(-1px); background: #1d4ed8; }
-    .green { background: #16a34a; }
-    .green:hover { background: #15803d; }
+    button:hover {
+      transform: translateY(-1px);
+      background: #1d4ed8;
+    }
+
+    .green {
+      background: #16a34a;
+    }
+
+    .green:hover {
+      background: #15803d;
+    }
 
     #quizOptions {
       display: grid;
@@ -160,17 +177,20 @@
       text-align: left;
       background: #1e293b;
       border: 1px solid rgba(255,255,255,0.12);
+      color: white;
     }
 
-    .answerBtn:hover { background: #334155; }
+    .answerBtn:hover {
+      background: #334155;
+    }
 
     #quizFeedback {
       margin-top: 14px;
       min-height: 24px;
       font-weight: bold;
+      font-size: 16px;
     }
 
-    /* MOBILE UI */
     #mobileUI {
       position: fixed;
       inset: 0;
@@ -199,14 +219,15 @@
       position: absolute;
       left: 24px;
       bottom: 24px;
-      width: 128px;
-      height: 128px;
+      width: 132px;
+      height: 132px;
       border-radius: 50%;
-      background: rgba(15,23,42,0.45);
-      border: 2px solid rgba(255,255,255,0.12);
+      background: rgba(15,23,42,0.48);
+      border: 2px solid rgba(255,255,255,0.14);
       pointer-events: none;
       display: none;
       backdrop-filter: blur(5px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.22);
     }
 
     #joystickKnob {
@@ -214,9 +235,9 @@
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: rgba(125,211,252,0.95);
-      left: 36px;
-      top: 36px;
+      background: rgba(147,197,253,0.98);
+      left: 38px;
+      top: 38px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.35);
       pointer-events: none;
     }
@@ -225,9 +246,9 @@
       position: absolute;
       right: 16px;
       bottom: 26px;
-      background: rgba(15,23,42,0.58);
+      background: rgba(15,23,42,0.64);
       border: 1px solid rgba(255,255,255,0.08);
-      color: #cbd5e1;
+      color: #e2e8f0;
       border-radius: 14px;
       padding: 10px 12px;
       font-size: 13px;
@@ -238,12 +259,12 @@
     #interactBtn {
       position: absolute;
       right: 20px;
-      bottom: 110px;
-      width: 82px;
-      height: 82px;
+      bottom: 112px;
+      width: 86px;
+      height: 86px;
       border-radius: 50%;
-      background: rgba(34,197,94,0.9);
-      border: 2px solid rgba(255,255,255,0.18);
+      background: rgba(34,197,94,0.95);
+      border: 2px solid rgba(255,255,255,0.2);
       color: white;
       font-size: 28px;
       font-weight: bold;
@@ -251,14 +272,14 @@
       align-items: center;
       justify-content: center;
       pointer-events: auto;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.28);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.3);
     }
 
     #cameraLabel {
       position: absolute;
       right: 18px;
       top: 18px;
-      background: rgba(15,23,42,0.55);
+      background: rgba(15,23,42,0.62);
       border: 1px solid rgba(255,255,255,0.08);
       color: #dbeafe;
       border-radius: 12px;
@@ -273,7 +294,7 @@
       left: 50%;
       bottom: 110px;
       transform: translateX(-50%);
-      background: rgba(15,23,42,0.58);
+      background: rgba(15,23,42,0.66);
       border: 1px solid rgba(255,255,255,0.08);
       color: #dbeafe;
       border-radius: 12px;
@@ -328,7 +349,7 @@
       </p>
       <p>
         Explore a fábrica em <strong>terceira pessoa</strong>, visite as estações de aprendizagem
-        e conclua o quiz final.
+        e conclua o quiz final com <strong>10 perguntas</strong>.
       </p>
       <div class="buttons">
         <button id="startBtn" class="green">Entrar na fábrica</button>
@@ -378,10 +399,12 @@
 
     let scene, camera, renderer, clock;
     let player, playerVisual;
+    let head, torso, leftArm, rightArm, leftForeArm, rightForeArm, leftLeg, rightLeg, leftShin, rightShin;
     let isOverlayOpen = true;
     let currentInteractable = null;
     let visitedStations = new Set();
     let quizUnlocked = false;
+    let quizTerminalGroup = null;
 
     const keys = {
       forward: false,
@@ -402,7 +425,7 @@
     };
 
     let yaw = Math.PI;
-    let pitch = -0.35;
+    let pitch = -0.30;
 
     const cameraState = {
       currentPos: new THREE.Vector3(),
@@ -438,41 +461,41 @@
       {
         id: "origem",
         title: "1. O que é o Taylorismo?",
-        position: [-18, 0, -12],
+        position: [-22, 0, -14],
         html: `
           <p>O <strong>Taylorismo</strong> foi um sistema de organização do trabalho criado por <strong>Frederick Winslow Taylor</strong>.</p>
-          <p>Seu objetivo era aumentar a produção por meio da análise científica do trabalho.</p>
+          <p>Seu objetivo principal era tornar a produção mais eficiente por meio de estudos científicos sobre o modo de trabalhar.</p>
           <ul>
-            <li>estudo detalhado das tarefas;</li>
+            <li>análise detalhada das tarefas;</li>
             <li>busca por eficiência;</li>
             <li>redução de desperdícios;</li>
-            <li>organização científica da produção.</li>
+            <li>padronização do trabalho.</li>
           </ul>
         `
       },
       {
         id: "divisao",
         title: "2. Divisão e especialização do trabalho",
-        position: [18, 0, -12],
+        position: [22, 0, -14],
         html: `
           <p>No Taylorismo, o trabalho era dividido em pequenas etapas.</p>
-          <p>Cada operário fazia apenas uma parte do processo, ficando especializado nela.</p>
+          <p>Cada operário executava apenas uma função específica, tornando-se especialista nela.</p>
           <ul>
             <li>um corta;</li>
             <li>outro encaixa;</li>
             <li>outro monta;</li>
             <li>outro embala.</li>
           </ul>
-          <p>Isso aumentava a produtividade, mas deixava o trabalho repetitivo.</p>
+          <p>Isso aumentava a produtividade, mas deixava o trabalho mais repetitivo.</p>
         `
       },
       {
         id: "tempo",
         title: "3. Controle do tempo e dos movimentos",
-        position: [-18, 0, 16],
+        position: [-22, 0, 18],
         html: `
           <p>Taylor defendia o estudo de <strong>tempos e movimentos</strong>.</p>
-          <p>Era preciso analisar quanto tempo cada tarefa levava e quais movimentos eram feitos.</p>
+          <p>Era necessário observar quanto tempo cada tarefa levava e quais gestos poderiam ser eliminados.</p>
           <ul>
             <li>menos movimentos inúteis;</li>
             <li>mais rapidez;</li>
@@ -484,7 +507,7 @@
       {
         id: "criticas",
         title: "4. Vantagens e críticas ao Taylorismo",
-        position: [18, 0, 16],
+        position: [22, 0, 18],
         html: `
           <p><strong>Vantagens:</strong></p>
           <ul>
@@ -507,7 +530,7 @@
     const quizData = [
       {
         q: "Quem criou o Taylorismo?",
-        options: ["Karl Marx", "Frederick Taylor", "Henry Ford", "Durkheim"],
+        options: ["Karl Marx", "Frederick Taylor", "Henry Ford", "Max Weber"],
         correct: 1
       },
       {
@@ -517,13 +540,43 @@
       },
       {
         q: "Uma característica do Taylorismo é:",
-        options: ["Ausência de supervisão", "Produção artesanal completa", "Divisão e especialização das tarefas", "Fim do controle do tempo"],
+        options: ["Produção artesanal completa", "Ausência de supervisão", "Divisão e especialização das tarefas", "Fim do controle do tempo"],
+        correct: 2
+      },
+      {
+        q: "Taylor estudava principalmente:",
+        options: ["Tempos e movimentos", "A política", "A agricultura", "A arte industrial"],
+        correct: 0
+      },
+      {
+        q: "No Taylorismo, o trabalhador geralmente:",
+        options: ["Fazia todas as etapas sozinho", "Executava uma tarefa específica", "Trabalhava sem regras", "Decidia sozinho o ritmo de toda a fábrica"],
+        correct: 1
+      },
+      {
+        q: "Uma vantagem do Taylorismo foi:",
+        options: ["Maior desperdício", "Queda da organização", "Aumento da produtividade", "Fim das máquinas"],
         correct: 2
       },
       {
         q: "Uma crítica ao Taylorismo é:",
-        options: ["Produção muito lenta", "Trabalho repetitivo e cansativo", "Pouca organização", "Falta de padronização"],
+        options: ["Trabalho repetitivo e cansativo", "Excesso de autonomia do operário", "Pouca organização", "Produção artesanal demais"],
+        correct: 0
+      },
+      {
+        q: "A Administração Científica buscava:",
+        options: ["Improvisação constante", "Padronizar tarefas", "Eliminar fábricas", "Diminuir totalmente a produção"],
         correct: 1
+      },
+      {
+        q: "O Taylorismo influenciou principalmente:",
+        options: ["A organização industrial", "Somente as escolas", "Somente o campo", "A produção artística"],
+        correct: 0
+      },
+      {
+        q: "No Taylorismo, o controle do tempo servia para:",
+        options: ["Tornar a produção mais eficiente", "Parar as máquinas", "Reduzir o trabalho em equipe", "Aumentar o improviso"],
+        correct: 0
       }
     ];
 
@@ -536,8 +589,8 @@
 
     function init() {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0x09111f);
-      scene.fog = new THREE.Fog(0x09111f, 35, 110);
+      scene.background = new THREE.Color(0x08111f);
+      scene.fog = new THREE.Fog(0x08111f, 35, 115);
 
       camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
 
@@ -564,46 +617,46 @@
     }
 
     function addLights() {
-      const ambient = new THREE.AmbientLight(0xc7ddff, 1.15);
+      const ambient = new THREE.AmbientLight(0xdbeafe, 1.2);
       scene.add(ambient);
 
-      const sun = new THREE.DirectionalLight(0xffffff, 1.25);
-      sun.position.set(25, 35, 18);
+      const sun = new THREE.DirectionalLight(0xffffff, 1.3);
+      sun.position.set(28, 38, 20);
       sun.castShadow = true;
       sun.shadow.mapSize.set(2048, 2048);
-      sun.shadow.camera.left = -80;
-      sun.shadow.camera.right = 80;
-      sun.shadow.camera.top = 80;
-      sun.shadow.camera.bottom = -80;
+      sun.shadow.camera.left = -90;
+      sun.shadow.camera.right = 90;
+      sun.shadow.camera.top = 90;
+      sun.shadow.camera.bottom = -90;
       scene.add(sun);
 
-      const p1 = new THREE.PointLight(0x60a5fa, 18, 45, 2);
-      p1.position.set(-20, 11, 0);
+      const p1 = new THREE.PointLight(0x60a5fa, 20, 48, 2);
+      p1.position.set(-24, 12, 0);
       scene.add(p1);
 
-      const p2 = new THREE.PointLight(0x60a5fa, 18, 45, 2);
-      p2.position.set(20, 11, 0);
+      const p2 = new THREE.PointLight(0x60a5fa, 20, 48, 2);
+      p2.position.set(24, 12, 0);
       scene.add(p2);
 
-      const p3 = new THREE.PointLight(0x93c5fd, 10, 35, 2);
-      p3.position.set(0, 10, -26);
+      const p3 = new THREE.PointLight(0x93c5fd, 12, 38, 2);
+      p3.position.set(0, 11, -28);
       scene.add(p3);
     }
 
     function buildEnvironment() {
       const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(120, 120),
+        new THREE.PlaneGeometry(130, 130),
         new THREE.MeshStandardMaterial({
-          color: 0x7a8696,
-          roughness: 0.94,
-          metalness: 0.1
+          color: 0x808d9d,
+          roughness: 0.93,
+          metalness: 0.08
         })
       );
       floor.rotation.x = -Math.PI / 2;
       floor.receiveShadow = true;
       scene.add(floor);
 
-      const grid = new THREE.GridHelper(120, 60, 0x94a3b8, 0x334155);
+      const grid = new THREE.GridHelper(130, 65, 0xcbd5e1, 0x334155);
       grid.position.y = 0.02;
       scene.add(grid);
 
@@ -614,10 +667,10 @@
       const darkMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.88, metalness: 0.12 });
 
       const walls = [
-        [0, 8, -40, 80, 16, 1],
-        [0, 8, 40, 80, 16, 1],
-        [-40, 8, 0, 1, 16, 80],
-        [40, 8, 0, 1, 16, 80]
+        [0, 8, -42, 84, 16, 1],
+        [0, 8, 42, 84, 16, 1],
+        [-42, 8, 0, 1, 16, 84],
+        [42, 8, 0, 1, 16, 84]
       ];
 
       walls.forEach(([x, y, z, w, h, d]) => {
@@ -629,7 +682,7 @@
       });
 
       const roof = new THREE.Mesh(
-        new THREE.BoxGeometry(82, 1.5, 82),
+        new THREE.BoxGeometry(86, 1.5, 86),
         new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.95, metalness: 0.05 })
       );
       roof.position.set(0, 16.8, 0);
@@ -647,7 +700,7 @@
       }
 
       for (let i = -2; i <= 2; i++) {
-        const belt = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 34), darkMat);
+        const belt = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 36), darkMat);
         belt.position.set(i * 6, 0.5, 0);
         belt.castShadow = true;
         belt.receiveShadow = true;
@@ -663,13 +716,13 @@
       }
 
       for (let z = -30; z <= 30; z += 12) {
-        const stripe = new THREE.Mesh(new THREE.BoxGeometry(26, 0.03, 1), yellowMat);
+        const stripe = new THREE.Mesh(new THREE.BoxGeometry(28, 0.03, 1), yellowMat);
         stripe.position.set(0, 0.03, z);
         scene.add(stripe);
       }
 
       const machinePositions = [
-        [-26, 2, 0], [26, 2, 0], [0, 2, -25], [0, 2, 25]
+        [-26, 2, 0], [26, 2, 0], [0, 2, -26], [0, 2, 26]
       ];
 
       machinePositions.forEach(([x, y, z]) => {
@@ -697,16 +750,16 @@
           new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.85, metalness: 0.05 })
         );
         box.position.set(
-          -32 + (i % 5) * 3.3,
+          -33 + (i % 5) * 3.3,
           1.1 + Math.floor(i / 10) * 2.3,
-          26 + Math.floor((i % 10) / 5) * 3.1
+          27 + Math.floor((i % 10) / 5) * 3.1
         );
         box.castShadow = true;
         box.receiveShadow = true;
         scene.add(box);
       }
 
-      createSign("FÁBRICA TAYLORISTA", 0, 11.5, -39.2, 16);
+      createSign("FÁBRICA TAYLORISTA", 0, 11.5, -41.2, 18);
     }
 
     function createSign(text, x, y, z, size = 8) {
@@ -717,11 +770,11 @@
 
       ctx.fillStyle = "#0f172a";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#7dd3fc";
+      ctx.strokeStyle = "#93c5fd";
       ctx.lineWidth = 10;
       ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-      ctx.fillStyle = "#e5f3ff";
-      ctx.font = "bold 80px Arial";
+      ctx.fillStyle = "#f8fafc";
+      ctx.font = "bold 82px Arial";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(text, canvas.width / 2, canvas.height / 2);
@@ -733,74 +786,229 @@
       scene.add(plane);
     }
 
+    function makeUniformTexture() {
+      const canvas = document.createElement("canvas");
+      canvas.width = 512;
+      canvas.height = 512;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, 512, 512);
+
+      ctx.fillStyle = "#2563eb";
+      ctx.fillRect(0, 95, 512, 70);
+
+      ctx.fillStyle = "#1d4ed8";
+      ctx.fillRect(0, 170, 512, 18);
+
+      ctx.fillStyle = "#e2e8f0";
+      ctx.fillRect(160, 0, 192, 70);
+
+      ctx.fillStyle = "#2563eb";
+      ctx.beginPath();
+      ctx.moveTo(256, 25);
+      ctx.lineTo(230, 70);
+      ctx.lineTo(282, 70);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#0f172a";
+      ctx.beginPath();
+      ctx.arc(118, 130, 28, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 22px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("ES", 118, 130);
+
+      ctx.strokeStyle = "rgba(37,99,235,0.30)";
+      ctx.lineWidth = 3;
+      for (let y = 220; y < 500; y += 34) {
+        ctx.beginPath();
+        ctx.moveTo(35, y);
+        ctx.lineTo(477, y);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(canvas);
+      tex.anisotropy = 4;
+      return tex;
+    }
+
     function createPlayer() {
       player = new THREE.Object3D();
-      player.position.set(0, 0, 30);
+      player.position.set(0, 0, 31);
       scene.add(player);
 
       playerVisual = new THREE.Group();
-
-      // cabeça
-      const head = new THREE.Mesh(
-        new THREE.SphereGeometry(0.45, 24, 24),
-        new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.8 })
-      );
-      head.position.y = 2.3;
-      head.castShadow = true;
-      playerVisual.add(head);
-
-      // tronco - uniforme inspirado na rede estadual ES
-      const shirt = new THREE.Mesh(
-        new THREE.BoxGeometry(1.1, 1.2, 0.6),
-        new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.75 })
-      );
-      shirt.position.y = 1.35;
-      shirt.castShadow = true;
-      playerVisual.add(shirt);
-
-      // faixa azul
-      const stripe = new THREE.Mesh(
-        new THREE.BoxGeometry(1.14, 0.18, 0.62),
-        new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.7 })
-      );
-      stripe.position.set(0, 1.55, 0.01);
-      playerVisual.add(stripe);
-
-      // braços
-      const armMat = new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.85 });
-      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.0, 0.25), armMat);
-      leftArm.position.set(-0.75, 1.35, 0);
-      leftArm.castShadow = true;
-      playerVisual.add(leftArm);
-
-      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 1.0, 0.25), armMat);
-      rightArm.position.set(0.75, 1.35, 0);
-      rightArm.castShadow = true;
-      playerVisual.add(rightArm);
-
-      // pernas azul escuro
-      const legMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.75 });
-      const leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), legMat);
-      leftLeg.position.set(-0.22, 0.45, 0);
-      leftLeg.castShadow = true;
-      playerVisual.add(leftLeg);
-
-      const rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 1.1, 0.35), legMat);
-      rightLeg.position.set(0.22, 0.45, 0);
-      rightLeg.castShadow = true;
-      playerVisual.add(rightLeg);
-
-      // sapatos
-      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
-      const leftShoe = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.55), shoeMat);
-      leftShoe.position.set(-0.22, -0.18, 0.08);
-      playerVisual.add(leftShoe);
-
-      const rightShoe = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.18, 0.55), shoeMat);
-      rightShoe.position.set(0.22, -0.18, 0.08);
-      playerVisual.add(rightShoe);
-
       player.add(playerVisual);
+
+      const skinMat = new THREE.MeshStandardMaterial({ color: 0xf1c27d, roughness: 0.82 });
+      const darkHairMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.92 });
+      const whiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 });
+      const bluePantsMat = new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.76 });
+      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
+
+      const uniformTexture = makeUniformTexture();
+      const shirtMat = new THREE.MeshStandardMaterial({
+        map: uniformTexture,
+        roughness: 0.72,
+        metalness: 0.03
+      });
+
+      const hipGroup = new THREE.Group();
+      hipGroup.position.y = 0.05;
+      playerVisual.add(hipGroup);
+
+      torso = new THREE.Mesh(new THREE.BoxGeometry(1.18, 1.45, 0.72), shirtMat);
+      torso.position.y = 1.55;
+      torso.castShadow = true;
+      hipGroup.add(torso);
+
+      const waist = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.34, 0.64), bluePantsMat);
+      waist.position.y = 0.7;
+      waist.castShadow = true;
+      hipGroup.add(waist);
+
+      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.16, 12), skinMat);
+      neck.position.y = 2.35;
+      neck.castShadow = true;
+      hipGroup.add(neck);
+
+      head = new THREE.Group();
+      head.position.y = 2.62;
+      hipGroup.add(head);
+
+      const face = new THREE.Mesh(new THREE.SphereGeometry(0.48, 26, 26), skinMat);
+      face.castShadow = true;
+      head.add(face);
+
+      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.55), darkHairMat);
+      hair.position.y = 0.08;
+      hair.scale.set(1.02, 0.86, 1.02);
+      hair.castShadow = true;
+      head.add(hair);
+
+      const capVisor = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.06, 0.22), darkHairMat);
+      capVisor.position.set(0, 0.25, 0.36);
+      capVisor.rotation.x = -0.18;
+      capVisor.castShadow = true;
+      head.add(capVisor);
+
+      const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.5 });
+      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMat);
+      eyeL.position.set(-0.13, 0.02, 0.43);
+      head.add(eyeL);
+
+      const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.035, 8, 8), eyeMat);
+      eyeR.position.set(0.13, 0.02, 0.43);
+      head.add(eyeR);
+
+      const shoulderL = new THREE.Group();
+      shoulderL.position.set(-0.74, 1.98, 0);
+      hipGroup.add(shoulderL);
+
+      leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.78, 0.28), whiteMat);
+      leftArm.position.y = -0.38;
+      leftArm.castShadow = true;
+      shoulderL.add(leftArm);
+
+      const elbowL = new THREE.Group();
+      elbowL.position.set(0, -0.78, 0);
+      shoulderL.add(elbowL);
+
+      leftForeArm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.74, 0.24), skinMat);
+      leftForeArm.position.y = -0.37;
+      leftForeArm.castShadow = true;
+      elbowL.add(leftForeArm);
+
+      const handL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.16, 0.22), skinMat);
+      handL.position.y = -0.76;
+      handL.castShadow = true;
+      elbowL.add(handL);
+
+      const shoulderR = new THREE.Group();
+      shoulderR.position.set(0.74, 1.98, 0);
+      hipGroup.add(shoulderR);
+
+      rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.78, 0.28), whiteMat);
+      rightArm.position.y = -0.38;
+      rightArm.castShadow = true;
+      shoulderR.add(rightArm);
+
+      const elbowR = new THREE.Group();
+      elbowR.position.set(0, -0.78, 0);
+      shoulderR.add(elbowR);
+
+      rightForeArm = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.74, 0.24), skinMat);
+      rightForeArm.position.y = -0.37;
+      rightForeArm.castShadow = true;
+      elbowR.add(rightForeArm);
+
+      const handR = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.16, 0.22), skinMat);
+      handR.position.y = -0.76;
+      handR.castShadow = true;
+      elbowR.add(handR);
+
+      const hipL = new THREE.Group();
+      hipL.position.set(-0.24, 0.58, 0);
+      hipGroup.add(hipL);
+
+      leftLeg = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.84, 0.34), bluePantsMat);
+      leftLeg.position.y = -0.42;
+      leftLeg.castShadow = true;
+      hipL.add(leftLeg);
+
+      const kneeL = new THREE.Group();
+      kneeL.position.set(0, -0.84, 0);
+      hipL.add(kneeL);
+
+      leftShin = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.82, 0.32), bluePantsMat);
+      leftShin.position.y = -0.41;
+      leftShin.castShadow = true;
+      kneeL.add(leftShin);
+
+      const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.16, 0.58), shoeMat);
+      shoeL.position.set(0, -0.86, 0.08);
+      shoeL.castShadow = true;
+      kneeL.add(shoeL);
+
+      const hipR = new THREE.Group();
+      hipR.position.set(0.24, 0.58, 0);
+      hipGroup.add(hipR);
+
+      rightLeg = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.84, 0.34), bluePantsMat);
+      rightLeg.position.y = -0.42;
+      rightLeg.castShadow = true;
+      hipR.add(rightLeg);
+
+      const kneeR = new THREE.Group();
+      kneeR.position.set(0, -0.84, 0);
+      hipR.add(kneeR);
+
+      rightShin = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.82, 0.32), bluePantsMat);
+      rightShin.position.y = -0.41;
+      rightShin.castShadow = true;
+      kneeR.add(rightShin);
+
+      const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.16, 0.58), shoeMat);
+      shoeR.position.set(0, -0.86, 0.08);
+      shoeR.castShadow = true;
+      kneeR.add(shoeR);
+
+      player.userData.rig = {
+        hipGroup,
+        shoulderL,
+        shoulderR,
+        elbowL,
+        elbowR,
+        hipL,
+        hipR,
+        kneeL,
+        kneeR
+      };
 
       updateCamera(true);
     }
@@ -815,47 +1023,68 @@
         group.position.set(...station.position);
 
         const pedestal = new THREE.Mesh(
-          new THREE.CylinderGeometry(2.1, 2.45, 1.2, 32),
-          new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.65, metalness: 0.42 })
+          new THREE.CylinderGeometry(2.4, 2.8, 1.35, 32),
+          new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.64, metalness: 0.42 })
         );
-        pedestal.position.y = 0.6;
+        pedestal.position.y = 0.67;
         pedestal.castShadow = true;
         pedestal.receiveShadow = true;
         group.add(pedestal);
 
+        const ring = new THREE.Mesh(
+          new THREE.TorusGeometry(1.6, 0.15, 14, 32),
+          new THREE.MeshStandardMaterial({
+            color: colors[i],
+            emissive: colors[i],
+            emissiveIntensity: 0.85,
+            roughness: 0.18,
+            metalness: 0.55
+          })
+        );
+        ring.rotation.x = Math.PI / 2;
+        ring.position.y = 1.65;
+        group.add(ring);
+
         const orb = new THREE.Mesh(
-          new THREE.SphereGeometry(1.2, 32, 32),
+          new THREE.SphereGeometry(1.35, 32, 32),
           new THREE.MeshStandardMaterial({
             color: colors[i],
             emissive: emissives[i],
-            emissiveIntensity: 0.9,
+            emissiveIntensity: 1.05,
             metalness: 0.4,
-            roughness: 0.16
+            roughness: 0.12
           })
         );
-        orb.position.y = 2.4;
+        orb.position.y = 2.55;
         orb.castShadow = true;
         group.add(orb);
 
-        const light = new THREE.PointLight(colors[i], 12, 10, 2);
+        const light = new THREE.PointLight(colors[i], 16, 12, 2);
         light.position.y = 2.5;
         group.add(light);
 
-        const label = createBillboard(labels[i], 5, 1.2);
-        label.position.set(0, 4.7, 0);
+        const plate = new THREE.Mesh(
+          new THREE.BoxGeometry(3.4, 0.28, 1.8),
+          new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.7, metalness: 0.25 })
+        );
+        plate.position.set(0, 1.2, 2.15);
+        group.add(plate);
+
+        const label = createBillboard(labels[i], 6.3, 1.45);
+        label.position.set(0, 5.2, 0);
         group.add(label);
 
-        group.userData = { type: "station", station, orb };
+        group.userData = { type: "station", station, orb, ring };
         scene.add(group);
       });
     }
 
     function createQuizTerminal() {
       const group = new THREE.Group();
-      group.position.set(0, 0, -28);
+      group.position.set(0, 0, -30);
 
       const base = new THREE.Mesh(
-        new THREE.BoxGeometry(5, 1, 5),
+        new THREE.BoxGeometry(5.2, 1, 5.2),
         new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.82, metalness: 0.22 })
       );
       base.position.y = 0.5;
@@ -863,32 +1092,33 @@
       group.add(base);
 
       const stand = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 3, 1),
+        new THREE.BoxGeometry(1, 3.2, 1),
         new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5, metalness: 0.55 })
       );
-      stand.position.y = 2;
+      stand.position.y = 2.1;
       stand.castShadow = true;
       group.add(stand);
 
       const screen = new THREE.Mesh(
-        new THREE.BoxGeometry(4, 2.5, 0.35),
+        new THREE.BoxGeometry(4.4, 2.7, 0.35),
         new THREE.MeshStandardMaterial({
           color: 0x0f172a,
           emissive: 0x2563eb,
-          emissiveIntensity: 1.1,
+          emissiveIntensity: 1.15,
           metalness: 0.65,
-          roughness: 0.2
+          roughness: 0.18
         })
       );
-      screen.position.set(0, 4, 0);
+      screen.position.set(0, 4.2, 0);
       screen.castShadow = true;
       group.add(screen);
 
-      const label = createBillboard("QUIZ FINAL", 5.4, 1.35);
-      label.position.set(0, 6, 0);
+      const label = createBillboard("QUIZ FINAL", 5.8, 1.4);
+      label.position.set(0, 6.25, 0);
       group.add(label);
 
-      group.userData = { type: "quiz" };
+      group.userData = { type: "quiz", screen };
+      quizTerminalGroup = group;
       scene.add(group);
     }
 
@@ -900,7 +1130,7 @@
 
       ctx.fillStyle = "rgba(15,23,42,0.95)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#60a5fa";
+      ctx.strokeStyle = "#93c5fd";
       ctx.lineWidth = 6;
       ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
       ctx.fillStyle = "#ffffff";
@@ -985,7 +1215,7 @@
       let touchId = null;
       let originX = 0;
       let originY = 0;
-      const maxRadius = 45;
+      const maxRadius = 55;
 
       leftZone.addEventListener("touchstart", (e) => {
         if (touchId !== null) return;
@@ -995,8 +1225,8 @@
         originY = t.clientY;
 
         joystickBase.style.display = "block";
-        joystickBase.style.left = (originX - 64) + "px";
-        joystickBase.style.top = (originY - 64) + "px";
+        joystickBase.style.left = (originX - 66) + "px";
+        joystickBase.style.top = (originY - 66) + "px";
         resetJoystickKnob();
       }, { passive: true });
 
@@ -1013,11 +1243,14 @@
             dy = dy / len * maxRadius;
           }
 
-          joystickKnob.style.left = (36 + dx) + "px";
-          joystickKnob.style.top = (36 + dy) + "px";
+          joystickKnob.style.left = (38 + dx) + "px";
+          joystickKnob.style.top = (38 + dy) + "px";
 
-          mobileInput.moveX = dx / maxRadius;
-          mobileInput.moveY = dy / maxRadius;
+          const targetX = dx / maxRadius;
+          const targetY = dy / maxRadius;
+
+          mobileInput.moveX += (targetX - mobileInput.moveX) * 0.28;
+          mobileInput.moveY += (targetY - mobileInput.moveY) * 0.28;
         }
       }, { passive: true });
 
@@ -1044,8 +1277,8 @@
       });
 
       function resetJoystickKnob() {
-        joystickKnob.style.left = "36px";
-        joystickKnob.style.top = "36px";
+        joystickKnob.style.left = "38px";
+        joystickKnob.style.top = "38px";
       }
     }
 
@@ -1114,14 +1347,65 @@
       scene.traverse((obj) => {
         if (obj.userData?.type === "station") {
           const orb = obj.userData.orb;
-          orb.position.y = 2.4 + Math.sin(t * 2.2) * 0.15;
+          const ring = obj.userData.ring;
+          orb.position.y = 2.55 + Math.sin(t * 2.15) * 0.16;
           orb.rotation.y += 0.018;
+          if (ring) {
+            ring.rotation.z += 0.01;
+          }
         }
       });
 
-      const moveSpeed = Math.hypot(playerState.velX, playerState.velZ);
-      if (playerVisual) {
-        playerVisual.position.y = Math.sin(t * 10) * Math.min(0.05, moveSpeed * 0.012);
+      if (quizTerminalGroup) {
+        quizTerminalGroup.userData.screen.emissiveIntensity = 1.0 + Math.sin(t * 3.5) * 0.18;
+      }
+
+      const speed = Math.hypot(playerState.velX, playerState.velZ);
+      animatePlayerRig(t, speed);
+    }
+
+    function animatePlayerRig(t, speed) {
+      if (!playerVisual || !player.userData.rig) return;
+
+      const {
+        hipGroup, shoulderL, shoulderR, elbowL, elbowR, hipL, hipR, kneeL, kneeR
+      } = player.userData.rig;
+
+      const moving = speed > 0.15;
+      const running = speed > 8.2;
+      const cycle = t * (running ? 12 : 8);
+      const legAmp = running ? 0.8 : 0.48;
+      const armAmp = running ? 0.72 : 0.42;
+      const kneeAmp = running ? 0.55 : 0.32;
+
+      if (moving) {
+        hipL.rotation.x = Math.sin(cycle) * legAmp;
+        hipR.rotation.x = Math.sin(cycle + Math.PI) * legAmp;
+
+        kneeL.rotation.x = Math.max(0, Math.sin(cycle + Math.PI * 0.45)) * kneeAmp;
+        kneeR.rotation.x = Math.max(0, Math.sin(cycle + Math.PI * 1.45)) * kneeAmp;
+
+        shoulderL.rotation.x = Math.sin(cycle + Math.PI) * armAmp;
+        shoulderR.rotation.x = Math.sin(cycle) * armAmp;
+
+        elbowL.rotation.x = Math.max(0, Math.sin(cycle + Math.PI)) * 0.25;
+        elbowR.rotation.x = Math.max(0, Math.sin(cycle)) * 0.25;
+
+        hipGroup.position.y = 0.05 + Math.abs(Math.sin(cycle * 2)) * (running ? 0.09 : 0.05);
+        playerVisual.rotation.z = Math.sin(cycle) * (running ? 0.05 : 0.025);
+        head.rotation.z = Math.sin(cycle) * 0.03;
+      } else {
+        hipL.rotation.x += (0 - hipL.rotation.x) * 0.15;
+        hipR.rotation.x += (0 - hipR.rotation.x) * 0.15;
+        kneeL.rotation.x += (0 - kneeL.rotation.x) * 0.15;
+        kneeR.rotation.x += (0 - kneeR.rotation.x) * 0.15;
+        shoulderL.rotation.x += (0 - shoulderL.rotation.x) * 0.15;
+        shoulderR.rotation.x += (0 - shoulderR.rotation.x) * 0.15;
+        elbowL.rotation.x += (0 - elbowL.rotation.x) * 0.15;
+        elbowR.rotation.x += (0 - elbowR.rotation.x) * 0.15;
+        hipGroup.position.y += (0.05 - hipGroup.position.y) * 0.15;
+        playerVisual.rotation.z += (0 - playerVisual.rotation.z) * 0.12;
+        head.rotation.z += (0 - head.rotation.z) * 0.12;
       }
     }
 
@@ -1161,20 +1445,23 @@
       player.position.x += playerState.velX * dt;
       player.position.z += playerState.velZ * dt;
 
-      player.position.x = clamp(player.position.x, -36, 36);
-      player.position.z = clamp(player.position.z, -36, 36);
+      player.position.x = clamp(player.position.x, -38, 38);
+      player.position.z = clamp(player.position.z, -38, 38);
 
       const lookDir = new THREE.Vector3(playerState.velX, 0, playerState.velZ);
       if (lookDir.lengthSq() > 0.001) {
-        player.rotation.y = Math.atan2(lookDir.x, lookDir.z);
+        const targetAngle = Math.atan2(lookDir.x, lookDir.z);
+        let diff = targetAngle - player.rotation.y;
+        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
+        player.rotation.y += diff * 0.15;
       }
 
       updateCamera();
     }
 
     function updateCamera(force = false) {
-      const camDistance = 6.2;
-      const camHeight = 3.1;
+      const camDistance = 6.7;
+      const camHeight = 3.35;
 
       const dirX = Math.sin(yaw) * Math.cos(pitch);
       const dirY = Math.sin(pitch);
@@ -1182,26 +1469,20 @@
 
       const desiredPos = new THREE.Vector3(
         player.position.x - dirX * camDistance,
-        player.position.y + camHeight - dirY * 1.7,
+        player.position.y + camHeight - dirY * 1.8,
         player.position.z - dirZ * camDistance
       );
 
       const targetLook = new THREE.Vector3(
         player.position.x,
-        player.position.y + 1.7,
+        player.position.y + 1.9,
         player.position.z
       );
 
-      if (force) {
-        camera.position.copy(desiredPos);
-        camera.lookAt(targetLook);
-        cameraState.currentPos.copy(desiredPos);
-        cameraState.targetLook.copy(targetLook);
-        return;
-      }
+      const smooth = force ? 1 : 0.09;
 
-      cameraState.currentPos.lerp(desiredPos, 0.12);
-      cameraState.targetLook.lerp(targetLook, 0.18);
+      cameraState.currentPos.lerp(desiredPos, smooth);
+      cameraState.targetLook.lerp(targetLook, smooth * 1.45);
 
       camera.position.copy(cameraState.currentPos);
       camera.lookAt(cameraState.targetLook);
@@ -1222,7 +1503,7 @@
         }
       });
 
-      if (nearest && nearestDist < 5.6) {
+      if (nearest && nearestDist < 6.2) {
         currentInteractable = nearest;
         interactBtn.style.display = "flex";
 

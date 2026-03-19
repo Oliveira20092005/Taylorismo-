@@ -3,168 +3,125 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylorismo 3D Pro - A Fábrica de Aço</title>
+    <title>Taylorismo 3D Pro</title>
     <style>
-        body { margin: 0; background: #111; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; }
-        
-        /* Efeito de Lente Profissional (Old Cam) */
-        #container { width: 100vw; height: 100vh; filter: contrast(1.2) brightness(0.9) grayscale(0.5) sepia(0.2); }
-        #vignette { position: absolute; top: 0; left: 0; width: 100%; height: 100%; box-shadow: inset 0 0 150px rgba(0,0,0,0.7); pointer-events: none; }
-        
-        /* Interface de Taylor (HUD) */
-        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #ffaa00; pointer-events: none; text-shadow: 2px 2px #000; z-index: 10; }
-        #cronometro { font-size: 28px; font-weight: bold; color: #ff0000; }
-        
-        /* Joystick Virtual (Totalmente invisível para não atrapalhar a visão) */
-        #joy-base { position: absolute; bottom: 50px; left: 50px; width: 120px; height: 120px; z-index: 20; }
-        
-        /* Instruções */
-        .legenda { position: absolute; bottom: 20px; width: 100%; text-align: center; color: white; font-size: 12px; background: rgba(0,0,0,0.5); padding: 5px 0; z-index: 5; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; touch-action: none; }
+        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #00ff00; pointer-events: none; z-index: 10; text-shadow: 2px 2px #000; }
+        .instrucoes { position: absolute; bottom: 15px; width: 100%; text-align: center; color: rgba(255,255,255,0.7); font-size: 11px; z-index: 5; }
+        #joy-container { position: absolute; bottom: 40px; left: 40px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); z-index: 20; }
     </style>
 </head>
 <body>
 
-    <div id="vignette"></div>
-    
     <div id="ui">
-        <h2 style="margin:0">SISTEMA DE EFICIÊNCIA INDUSTRIAL</h2>
-        <div id="cronometro">TEMPO: 00:00</div>
-        <p>Produtividade Requerida: 120%</p>
+        <h2 style="margin:0">FÁBRICA DE TAYLOR v2.0</h2>
+        <div id="timer" style="font-size: 24px;">TEMPO: 00:00</div>
+        <p style="color: #ffaa00;">SISTEMA: OTIMIZADO</p>
     </div>
     
-    <div class="legenda">Lado Esquerdo: Andar | Lado Direito: Olhar</div>
-    <div id="joy-base"></div> <div id="container"></div>
+    <div id="joy-container"></div>
+    <div class="instrucoes">ESQUERDA: ANDAR | DIREITA: OLHAR</div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/controls/PointerLockControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.1/dist/nipplejs.min.js"></script> <script>
-        // 1. Configuração Básica e Cena
+    <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.1/dist/nipplejs.min.js"></script>
+
+    <script>
+        // 1. CENA E RENDER
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1a1a);
-        
+        scene.background = new THREE.Color(0x050505);
+        scene.fog = new THREE.Fog(0x050505, 5, 40);
+
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.y = 1.7; // Altura dos olhos (FPS)
+        camera.position.set(0, 1.7, 5);
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        document.getElementById('container').appendChild(renderer.domElement);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
 
-        // 2. Iluminação Industrial
-        scene.add(new THREE.AmbientLight(0x404040, 1.2));
-        const light = new THREE.PointLight(0xffdd00, 1.5, 60);
-        light.position.set(0, 15, 0);
-        scene.add(light);
+        // 2. LUZES (Estilo Industrial Profissional)
+        const light1 = new THREE.PointLight(0xffffff, 1, 50);
+        light1.position.set(0, 10, 0);
+        scene.add(light1);
+        scene.add(new THREE.AmbientLight(0x404040, 0.5));
 
-        // Fog (Neblina de Fábrica)
-        scene.fog = new THREE.FogExp2(0x222222, 0.03);
-
-        // 3. Chão e Textura (Chapa de Metal)
-        const grid = new THREE.GridHelper(100, 40, 0x444444, 0x222222);
+        // 3. CENÁRIO (Chão e Grades)
+        const grid = new THREE.GridHelper(100, 50, 0x00ff00, 0x222222);
         scene.add(grid);
 
-        // 4. Mecânica de Taylor: Criando Máquinas e Operários
-        const operarios = [];
-        const boxGeo = new THREE.BoxGeometry(2, 4, 2);
-        const handGeo = new THREE.BoxGeometry(0.3, 0.3, 1);
+        // 4. OPERÁRIOS E MÁQUINAS (Mecânica de Taylor)
+        const workers = [];
+        const boxGeo = new THREE.BoxGeometry(1.5, 3, 1.5);
+        const headGeo = new THREE.SphereGeometry(0.4);
 
         for(let i=0; i<30; i++) {
-            const mMat = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.8 });
-            const box = new THREE.Mesh(boxGeo, mMat);
-            box.position.set((Math.random()-0.5)*70, 2, (Math.random()-0.5)*70);
-            scene.add(box);
+            const group = new THREE.Group();
             
-            // O Operário (Uma esfera vermelha que 'martela')
-            const opMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-            const worker = new THREE.Mesh(new THREE.SphereGeometry(0.5), opMat);
-            worker.position.set(box.position.x, 4.5, box.position.z);
-            
-            // O Braço que Martela (O movimento repetitivo de Taylor)
-            const hand = new THREE.Mesh(handGeo, new THREE.MeshBasicMaterial({ color: 0x0000ff }));
-            hand.position.set(box.position.x, 4.2, box.position.z + 1);
-            
-            // Dados para animação individual
-            worker.userData = { offset: Math.random() * Math.PI, speed: 0.06 + Math.random()*0.02 };
-            hand.userData = { startZ: hand.position.z };
-            
-            scene.add(worker);
-            scene.add(hand);
-            operarios.push({head: worker, hand: hand});
+            // Máquina
+            const machine = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({color: 0x333333}));
+            group.add(machine);
+
+            // Operário (Esfera)
+            const worker = new THREE.Mesh(headGeo, new THREE.MeshBasicMaterial({color: 0xff0000}));
+            worker.position.y = 2.2;
+            group.add(worker);
+
+            group.position.set((Math.random()-0.5)*50, 1.5, (Math.random()-0.5)*50);
+            scene.add(group);
+            workers.push(worker);
         }
 
-        // 5. MECÂNICA DE OLHAR (Toque na direita)
+        // 5. CONTROLES MOBILE (Lado Esquerdo Andar / Direito Olhar)
+        let moveForward = 0, moveRight = 0;
         let yaw = 0, pitch = 0;
-        let lastTouchX = 0, lastTouchY = 0;
 
-        window.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            if (touch.clientX > window.innerWidth / 2) { // Lado direito olha
-                lastTouchX = touch.clientX;
-                lastTouchY = touch.clientY;
-            }
+        // Joystick
+        const joy = nipplejs.create({ zone: document.getElementById('joy-container'), mode: 'static', position: {left: '50px', bottom: '50px'}, size: 80 });
+        joy.on('move', (e, data) => {
+            moveForward = Math.sin(data.angle.radian) * data.distance / 40;
+            moveRight = Math.cos(data.angle.radian) * data.distance / 40;
         });
+        joy.on('end', () => { moveForward = 0; moveRight = 0; });
 
+        // Olhar (Touch no lado direito)
+        let lastX = 0, lastY = 0;
         window.addEventListener('touchmove', (e) => {
             const touch = e.touches[0];
             if (touch.clientX > window.innerWidth / 2) {
-                const deltaX = touch.clientX - lastTouchX;
-                const deltaY = touch.clientY - lastTouchY;
-                
-                // Sensibilidade do iPhone
-                yaw -= deltaX * 0.003;
-                pitch -= deltaY * 0.003;
-                pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch)); // Trava o pescoço
-                
-                lastTouchX = touch.clientX;
-                lastTouchY = touch.clientY;
+                if (lastX !== 0) {
+                    yaw -= (touch.clientX - lastX) * 0.005;
+                    pitch -= (touch.clientY - lastY) * 0.005;
+                    pitch = Math.max(-1.5, Math.min(1.5, pitch));
+                }
+                lastX = touch.clientX; lastY = touch.clientY;
             }
-        });
+        }, {passive: false});
+        window.addEventListener('touchend', () => { lastX = 0; lastY = 0; });
 
-        // 6. MECÂNICA DE ANDAR (NippleJS - Joystick Esquerdo)
-        let moveForward = 0, moveRight = 0;
-        const manager = nipplejs.create({
-            zone: document.getElementById('joy-base'),
-            mode: 'static',
-            position: { left: '70px', bottom: '110px' },
-            color: 'rgba(255,255,255,0.05)', // Super transparente
-            size: 100
-        });
-
-        manager.on('move', (evt, data) => {
-            if (data.direction) {
-                moveForward = Math.sin(data.angle.radian) * data.distance / 50;
-                moveRight = Math.cos(data.angle.radian) * data.distance / 50;
-            }
-        });
-
-        manager.on('end', () => { moveForward = 0; moveRight = 0; });
-
-        // --- LÓGICA DO CRONÔMETRO ---
-        let segundos = 0;
+        // 6. CRONÔMETRO
+        let sec = 0;
         setInterval(() => {
-            segundos++;
-            const min = Math.floor(segundos / 60).toString().padStart(2, '0');
-            const seg = (segundos % 60).toString().padStart(2, '0');
-            document.getElementById('cronometro').innerText = `TEMPO: ${min}:${seg}`;
+            sec++;
+            const m = Math.floor(sec/60).toString().padStart(2,'0');
+            const s = (sec%60).toString().padStart(2,'0');
+            document.getElementById('timer').innerText = `TEMPO: ${m}:${s}`;
         }, 1000);
 
-        // 7. LOOP DE ANIMAÇÃO PROFISISONAL
+        // 7. LOOP
         function animate() {
             requestAnimationFrame(animate);
-            
-            // Aplicar Rotação (Olhar)
+
+            // Rotação da Câmera
             camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
-            
-            // Aplicar Movimento (Andar)
-            const speed = 0.08;
-            camera.position.addScaledVector(new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion), moveForward * speed);
-            camera.position.addScaledVector(new THREE.Vector3(1,0,0).applyQuaternion(camera.quaternion), moveRight * speed);
-            camera.position.y = 1.7; // Trava a altura para não voar
-            
-            // Animar operários (Movimento alienado)
-            operarios.forEach(op => {
-                op.head.position.y = 4.5 + Math.sin(Date.now() * op.head.userData.speed + op.head.userData.offset) * 0.3;
-                op.hand.position.z = op.hand.userData.startZ + Math.sin(Date.now() * op.head.userData.speed*2) * 0.3;
+
+            // Movimento
+            const dir = new THREE.Vector3(moveRight, 0, -moveForward).applyQuaternion(camera.quaternion);
+            dir.y = 0;
+            camera.position.addScaledVector(dir, 0.1);
+
+            // Animação Operários (Taylorismo: Movimento repetitivo)
+            workers.forEach((w, i) => {
+                w.position.y = 2.2 + Math.sin(Date.now() * 0.005 + i) * 0.2;
             });
 
             renderer.render(scene, camera);

@@ -3,36 +3,49 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylorismo: The Efficiency Game</title>
+    <title>Taylorismo: 1900 Industrial Experience</title>
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Segoe UI', sans-serif; touch-action: none; }
-        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #00ff00; pointer-events: none; z-index: 10; text-shadow: 2px 2px #000; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: white; text-align: center; padding: 20px; }
-        button { padding: 15px 40px; font-size: 22px; cursor: pointer; background: #00ff00; border: none; font-weight: bold; border-radius: 50px; box-shadow: 0 0 20px #00ff00; }
-        .hud-top { display: flex; justify-content: space-around; width: 100%; font-size: 18px; background: rgba(0,0,0,0.5); padding: 10px 0; }
-        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 100px; height: 100px; z-index: 20; opacity: 0.6; }
-        .crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 2px solid rgba(0,255,0,0.5); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        body { margin: 0; background: #1a1a1a; overflow: hidden; font-family: 'Georgia', serif; touch-action: none; }
+        
+        /* Filtro de Filme Antigo */
+        #viewport { 
+            width: 100vw; height: 100vh; 
+            filter: sepia(0.4) contrast(1.1) brightness(0.8);
+        }
+        #grain {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://www.transparenttextures.com/patterns/stardust.png');
+            opacity: 0.15; pointer-events: none; z-index: 50;
+        }
+
+        #ui { position: absolute; top: 10px; width: 100%; text-align: center; color: #e2c08d; pointer-events: none; z-index: 10; text-shadow: 1px 1px #000; }
+        .hud-top { display: flex; justify-content: space-around; width: 100%; background: rgba(46, 34, 20, 0.8); border-bottom: 2px solid #8b5a2b; padding: 10px 0; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2e2214; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 100; color: #e2c08d; text-align: center; padding: 20px; border: 10px double #8b5a2b; box-sizing: border-box; }
+        button { padding: 15px 40px; font-size: 20px; cursor: pointer; background: #8b5a2b; color: white; border: 2px solid #e2c08d; font-family: 'Georgia', serif; text-transform: uppercase; }
+        #joy-container { position: absolute; bottom: 50px; left: 50px; width: 100px; height: 100px; z-index: 20; opacity: 0.4; border: 2px solid #e2c08d; border-radius: 50%; }
+        .crosshair { position: absolute; top: 50%; left: 50%; width: 15px; height: 15px; border: 1px solid #e2c08d; transform: translate(-50%, -50%); pointer-events: none; }
     </style>
 </head>
 <body>
 
+    <div id="grain"></div>
     <div id="overlay">
-        <h1 style="color:#00ff00">OPERÁRIO PADRÃO TAYLOR</h1>
-        <p>OBJETIVO: Encontre as máquinas com falha (VERMELHAS) e clique nelas para otimizar a produção.</p>
-        <p style="font-size: 14px; color: #aaa;">"No passado, o homem vinha primeiro; no futuro, o sistema deve vir primeiro." - F. Taylor</p>
-        <button onclick="startApp()">INICIAR TURNO</button>
+        <h1 style="font-size: 30px;">GERÊNCIA CIENTÍFICA<br><small>Frederick Taylor - 1911</small></h1>
+        <p>Elimine a vadiagem sistemática. <br>Padronize as máquinas defeituosas (Vermehas).</p>
+        <button onclick="startApp()">Iniciar Turno</button>
     </div>
 
     <div id="ui">
         <div class="hud-top">
             <div id="score">PRODUÇÃO: 0</div>
-            <div id="timer">TURNO: 01:00</div>
+            <div id="timer">RELÓGIO: 60s</div>
         </div>
-        <p id="msg" style="color: #ffaa00; font-size: 12px; margin-top: 5px;">MÁQUINAS RESTANTES: 5</p>
+        <p id="msg" style="color: #e2c08d; font-style: italic;">Máquinas desajustadas: 5</p>
     </div>
 
     <div class="crosshair"></div>
     <div id="joy-container"></div>
+    <div id="viewport"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nipplejs@0.9.1/dist/nipplejs.min.js"></script>
@@ -44,78 +57,71 @@
         function startApp() {
             document.getElementById('overlay').style.display = 'none';
             init();
-            startTimer();
         }
 
         function init() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0a0a);
-            scene.fog = new THREE.Fog(0x0a0a0a, 5, 50);
+            scene.background = new THREE.Color(0x1a1510);
+            scene.fog = new THREE.Fog(0x1a1510, 2, 40);
 
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 1.7, 5);
-
+            
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.toneMapping = THREE.ReinhardToneMapping;
-            document.body.appendChild(renderer.domElement);
+            document.getElementById('viewport').appendChild(renderer.domElement);
 
-            // LUZES DE FÁBRICA
-            const ambient = new THREE.AmbientLight(0x404040, 0.5);
-            scene.add(ambient);
+            // Iluminação Âmbar (Lâmpadas antigas)
+            scene.add(new THREE.AmbientLight(0x443322, 1));
+            const sun = new THREE.DirectionalLight(0xffe4b5, 0.8);
+            sun.position.set(5, 10, 5);
+            scene.add(sun);
 
-            const pointLight = new THREE.PointLight(0x00ff00, 1, 50);
-            pointLight.position.set(0, 10, 0);
-            scene.add(pointLight);
-
-            // CHÃO DE METAL COM REFLEXO
-            const floorGeo = new THREE.PlaneGeometry(100, 100);
-            const floorMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.9, roughness: 0.1 });
-            const floor = new THREE.Mesh(floorGeo, floorMat);
+            // Chão de Concreto/Pedra
+            const floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(100, 100),
+                new THREE.MeshStandardMaterial({ color: 0x332211, roughness: 0.9 })
+            );
             floor.rotation.x = -Math.PI / 2;
             scene.add(floor);
 
-            const grid = new THREE.GridHelper(100, 40, 0x00ff00, 0x222222);
-            scene.add(grid);
-
-            // CRIAÇÃO DAS MÁQUINAS COMPLEXAS
+            // Criar Máquinas "Retrô"
             for(let i=0; i<15; i++) {
-                createMachine(i);
+                createRetroMachine(i);
             }
 
             setupControls();
             animate();
+            startTimer();
         }
 
-        function createMachine(id) {
+        function createRetroMachine(id) {
             const group = new THREE.Group();
             
-            // Base da Prensa
-            const base = new THREE.Mesh(new THREE.BoxGeometry(2, 0.5, 2), new THREE.MeshStandardMaterial({color: 0x333333}));
+            // Base de Tijolo/Ferro
+            const base = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 2), new THREE.MeshStandardMaterial({color: 0x3d2b1f}));
             group.add(base);
 
-            // Cilindro central
-            const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 3), new THREE.MeshStandardMaterial({color: 0x555555}));
-            cylinder.position.y = 1.5;
-            group.add(cylinder);
+            // Pistão de Bronze
+            const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 3), new THREE.MeshStandardMaterial({color: 0x8b5a2b, metalness: 0.8}));
+            stem.position.y = 1.5;
+            group.add(stem);
 
-            // Pistão de Cor (Objetivo)
+            // Cabeça da Prensa (A que muda de cor)
             const isTarget = id < 5;
-            const piston = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.6, 1.2), new THREE.MeshStandardMaterial({
-                color: isTarget ? 0xff0000 : 0x00ff00,
-                emissive: isTarget ? 0x330000 : 0x001100
+            const head = new THREE.Mesh(new THREE.SphereGeometry(0.8, 8, 8), new THREE.MeshStandardMaterial({
+                color: isTarget ? 0x880000 : 0xcd7f32,
+                emissive: isTarget ? 0x220000 : 0x000000
             }));
-            piston.position.y = 3;
-            piston.userData = { id: id, broken: isTarget };
-            group.add(piston);
+            head.position.y = 3;
+            head.userData = { id: id, broken: isTarget };
+            group.add(head);
 
-            group.position.set((Math.random()-0.5)*40, 0.25, (Math.random()-0.5)*40);
+            group.position.set((Math.random()-0.5)*40, 0.5, (Math.random()-0.5)*40);
             scene.add(group);
-            machines.push(piston);
+            machines.push(head);
         }
 
         function setupControls() {
-            // Joystick
             joy = nipplejs.create({ zone: document.getElementById('joy-container'), mode: 'static', position: {left: '50px', bottom: '50px'}, size: 80 });
             joy.on('move', (e, d) => {
                 moveF = Math.sin(d.angle.radian) * d.distance / 40;
@@ -123,12 +129,9 @@
             });
             joy.on('end', () => { moveF = 0; moveR = 0; });
 
-            // Toque para Olhar e Clicar
             let lastX = 0, lastY = 0;
             window.addEventListener('touchstart', (e) => {
-                if (e.touches[0].clientX > window.innerWidth / 2) {
-                    checkInteraction();
-                }
+                if (e.touches[0].clientX > window.innerWidth / 2) checkInteraction();
             });
 
             window.addEventListener('touchmove', (e) => {
@@ -137,7 +140,7 @@
                     if (lastX !== 0) {
                         yaw -= (t.clientX - lastX) * 0.005;
                         pitch -= (t.clientY - lastY) * 0.005;
-                        pitch = Math.max(-1.5, Math.min(1.5, pitch));
+                        pitch = Math.max(-1.4, Math.min(1.4, pitch));
                     }
                     lastX = t.clientX; lastY = t.clientY;
                 }
@@ -146,35 +149,28 @@
         }
 
         function checkInteraction() {
-            // Raio de detecção (Raycaster)
             const raycaster = new THREE.Raycaster();
-            const center = new THREE.Vector2(0, 0); // Centro da tela
-            raycaster.setFromCamera(center, camera);
-
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
             const intersects = raycaster.intersectObjects(machines);
             if (intersects.length > 0) {
                 const obj = intersects[0].object;
                 if (obj.userData.broken) {
-                    obj.material.color.set(0x00ff00);
+                    obj.material.color.set(0xcd7f32); // Cor de bronze
                     obj.userData.broken = false;
                     targetsLeft--;
                     score += 100;
                     document.getElementById('score').innerText = `PRODUÇÃO: ${score}`;
                     document.getElementById('msg').innerText = `MÁQUINAS RESTANTES: ${targetsLeft}`;
-                    if(targetsLeft <= 0) alert("EFICIÊNCIA MÁXIMA ATINGIDA! Taylor ficaria orgulhoso.");
                 }
             }
         }
 
         function startTimer() {
             let time = 60;
-            const t = setInterval(() => {
-                time--;
-                document.getElementById('timer').innerText = `TURNO: 00:${time < 10 ? '0'+time : time}`;
-                if (time <= 0) {
-                    clearInterval(t);
-                    alert("FIM DO TURNO! Produção total: " + score);
-                    location.reload();
+            setInterval(() => {
+                if(time > 0) {
+                    time--;
+                    document.getElementById('timer').innerText = `RELÓGIO: ${time}s`;
                 }
             }, 1000);
         }
@@ -184,22 +180,15 @@
             camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
             const dir = new THREE.Vector3(moveR, 0, -moveF).applyQuaternion(camera.quaternion);
             dir.y = 0;
-            camera.position.addScaledVector(dir, 0.15);
+            camera.position.addScaledVector(dir, 0.12);
+            camera.position.y = 1.7;
 
-            // Animação das Prensas
             machines.forEach((m, i) => {
-                const speed = m.userData.broken ? 0.01 : 0.005;
-                m.position.y = 2.5 + Math.sin(Date.now() * speed + i) * 1.0;
+                const s = m.userData.broken ? 0.008 : 0.004;
+                m.position.y = 2.5 + Math.sin(Date.now() * s + i) * 0.8;
             });
-
             renderer.render(scene, camera);
         }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>

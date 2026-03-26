@@ -2,164 +2,259 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fábrica Taylorista VR</title>
+<title>Fábrica Taylorista VR PRO</title>
 <style>
 body { margin:0; overflow:hidden; font-family:Arial; }
-#ui {
-  position:fixed;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(0,0,0,0.7);
-  padding:10px 15px;
-  border-radius:12px;
-  color:white;
-  z-index:10;
-}
 </style>
 </head>
 <body>
-
-<div id="ui">Aponte e aperte o gatilho para interagir</div>
 
 <script type="module">
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
 import { VRButton } from "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/webxr/VRButton.js";
 
-let scene, camera, renderer;
+let scene, camera, renderer, player;
 let controller1, controller2;
-let player;
+let interactables = [];
+let currentQuiz = null;
+let score = 0;
 
-const interactables = [];
+const quiz = [
+ {q:"Quem criou o Taylorismo?", a:["Marx","Taylor","Ford"], c:1},
+ {q:"Objetivo principal?", a:["Diminuir produção","Aumentar eficiência","Parar fábricas"], c:1}
+];
 
 init();
 animate();
 
-function init() {
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0a0f1c);
+// ===== INIT =====
+function init(){
+ scene = new THREE.Scene();
+ scene.background = new THREE.Color(0x0a0f1c);
 
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+ camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
 
-  renderer = new THREE.WebGLRenderer({ antialias:true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  renderer.xr.enabled = true;
-  document.body.appendChild(renderer.domElement);
+ renderer = new THREE.WebGLRenderer({antialias:true});
+ renderer.setSize(innerWidth, innerHeight);
+ renderer.xr.enabled = true;
+ document.body.appendChild(renderer.domElement);
+ document.body.appendChild(VRButton.createButton(renderer));
 
-  document.body.appendChild(VRButton.createButton(renderer));
+ // luz
+ const light = new THREE.HemisphereLight(0xffffff,0x444444,1.2);
+ scene.add(light);
 
-  // Luz
-  const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-  scene.add(light);
+ // chão
+ const floor = new THREE.Mesh(
+  new THREE.PlaneGeometry(100,100),
+  new THREE.MeshStandardMaterial({color:0x444444})
+ );
+ floor.rotation.x = -Math.PI/2;
+ scene.add(floor);
 
-  // Chão
-  const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(100,100),
-    new THREE.MeshStandardMaterial({ color:0x555555 })
-  );
-  floor.rotation.x = -Math.PI/2;
-  scene.add(floor);
+ // player
+ player = new THREE.Group();
+ player.position.set(0,1.6,5);
+ player.add(camera);
+ scene.add(player);
 
-  // Player
-  player = new THREE.Group();
-  player.position.set(0,1.6,5);
-  player.add(camera);
-  scene.add(player);
+ // estações
+ createStation(-5,0,"Taylorismo");
+ createStation(5,0,"Divisão do trabalho");
 
-  // Estações
-  createStation(-5,0,"Taylorismo");
-  createStation(5,0,"Divisão do trabalho");
-  createStation(-5,10,"Tempo e movimentos");
-  createStation(5,10,"Críticas");
+ // NPC
+ createNPC(0,0);
 
-  // CONTROLES VR
-  controller1 = renderer.xr.getController(0);
-  controller2 = renderer.xr.getController(1);
+ // QUIZ TERMINAL
+ createQuizTerminal(0,10);
 
-  scene.add(controller1);
-  scene.add(controller2);
+ // controles VR
+ controller1 = renderer.xr.getController(0);
+ controller2 = renderer.xr.getController(1);
+ scene.add(controller1);
+ scene.add(controller2);
 
-  controller1.addEventListener("selectstart", onSelect);
-  controller2.addEventListener("selectstart", onSelect);
+ controller1.addEventListener("selectstart", onSelect);
+ controller2.addEventListener("selectstart", onSelect);
 
-  // LASER VISUAL
-  const geometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(0,0,0),
-    new THREE.Vector3(0,0,-1)
-  ]);
-
-  const line = new THREE.Line(geometry);
-  line.name = "laser";
-  line.scale.z = 10;
-
-  controller1.add(line.clone());
-  controller2.add(line.clone());
-
-  window.addEventListener("resize", onResize);
+ addLaser(controller1);
+ addLaser(controller2);
 }
 
+// ===== ESTAÇÕES =====
 function createStation(x,z,text){
-  const mesh = new THREE.Mesh(
-    new THREE.BoxGeometry(2,2,2),
-    new THREE.MeshStandardMaterial({ color:0x2563eb })
-  );
-  mesh.position.set(x,1,z);
-  mesh.userData.text = text;
-
-  scene.add(mesh);
-  interactables.push(mesh);
+ const mesh = new THREE.Mesh(
+  new THREE.BoxGeometry(2,2,2),
+  new THREE.MeshStandardMaterial({color:0x2563eb})
+ );
+ mesh.position.set(x,1,z);
+ mesh.userData = {type:"station", text};
+ scene.add(mesh);
+ interactables.push(mesh);
 }
 
-function onSelect(event){
-  const controller = event.target;
+// ===== NPC =====
+function createNPC(x,z){
+ const npc = new THREE.Mesh(
+  new THREE.CapsuleGeometry(0.5,1.2,4,8),
+  new THREE.MeshStandardMaterial({color:0xfacc15})
+ );
+ npc.position.set(x,1,z);
+ npc.userData = {type:"npc"};
+ scene.add(npc);
+ interactables.push(npc);
+}
 
-  const raycaster = new THREE.Raycaster();
-  const tempMatrix = new THREE.Matrix4();
+// ===== QUIZ =====
+function createQuizTerminal(x,z){
+ const term = new THREE.Mesh(
+  new THREE.BoxGeometry(2,2,2),
+  new THREE.MeshStandardMaterial({color:0x10b981})
+ );
+ term.position.set(x,1,z);
+ term.userData = {type:"quiz"};
+ scene.add(term);
+ interactables.push(term);
+}
 
-  tempMatrix.identity().extractRotation(controller.matrixWorld);
-  raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-  raycaster.ray.direction.set(0,0,-1).applyMatrix4(tempMatrix);
+// ===== LASER =====
+function addLaser(controller){
+ const geo = new THREE.BufferGeometry().setFromPoints([
+  new THREE.Vector3(0,0,0),
+  new THREE.Vector3(0,0,-1)
+ ]);
+ const line = new THREE.Line(geo);
+ line.scale.z = 10;
+ controller.add(line);
+}
 
-  const intersects = raycaster.intersectObjects(interactables);
+// ===== INTERAÇÃO =====
+function onSelect(e){
+ const controller = e.target;
 
-  if(intersects.length > 0){
-    const obj = intersects[0].object;
-    alert("Você interagiu com: " + obj.userData.text);
+ const raycaster = new THREE.Raycaster();
+ const tempMatrix = new THREE.Matrix4();
+
+ tempMatrix.identity().extractRotation(controller.matrixWorld);
+ raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+ raycaster.ray.direction.set(0,0,-1).applyMatrix4(tempMatrix);
+
+ const hit = raycaster.intersectObjects(interactables);
+
+ if(hit.length>0){
+  const obj = hit[0].object;
+
+  if(obj.userData.type==="station"){
+    showText(obj.userData.text);
   }
+
+  if(obj.userData.type==="npc"){
+    showText("NPC: O trabalho aqui é repetitivo!");
+  }
+
+  if(obj.userData.type==="quiz"){
+    startQuiz();
+  }
+
+  if(obj.userData.answer!==undefined){
+    checkAnswer(obj.userData.answer);
+  }
+ }
 }
 
+// ===== TEXTO 3D =====
+function showText(text){
+ if(currentQuiz) scene.remove(currentQuiz);
+
+ const canvas = document.createElement("canvas");
+ canvas.width = 512;
+ canvas.height = 256;
+ const ctx = canvas.getContext("2d");
+
+ ctx.fillStyle="black";
+ ctx.fillRect(0,0,512,256);
+ ctx.fillStyle="white";
+ ctx.font="30px Arial";
+ ctx.fillText(text,20,120);
+
+ const tex = new THREE.CanvasTexture(canvas);
+
+ const mesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(4,2),
+  new THREE.MeshBasicMaterial({map:tex})
+ );
+
+ mesh.position.set(0,2,-3);
+ player.add(mesh);
+ currentQuiz = mesh;
+}
+
+// ===== QUIZ 3D =====
+let quizIndex = 0;
+
+function startQuiz(){
+ quizIndex = 0;
+ score = 0;
+ nextQuestion();
+}
+
+function nextQuestion(){
+ if(currentQuiz) scene.remove(currentQuiz);
+
+ if(quizIndex >= quiz.length){
+   showText("Fim! Pontuação: "+score);
+   return;
+ }
+
+ const q = quiz[quizIndex];
+
+ showText(q.q);
+
+ q.a.forEach((ans,i)=>{
+   const btn = new THREE.Mesh(
+     new THREE.BoxGeometry(1.5,0.5,0.3),
+     new THREE.MeshStandardMaterial({color:0x2563eb})
+   );
+
+   btn.position.set(-2 + i*2,1.2,-3);
+   btn.userData = {answer:i, correct:q.c};
+
+   player.add(btn);
+   interactables.push(btn);
+ });
+}
+
+function checkAnswer(i){
+ const q = quiz[quizIndex];
+
+ if(i === q.c){
+   score++;
+ }
+
+ quizIndex++;
+ nextQuestion();
+}
+
+// ===== MOVIMENTO =====
+function move(){
+ const session = renderer.xr.getSession();
+ if(!session) return;
+
+ session.inputSources.forEach(src=>{
+   if(src.gamepad){
+     const a = src.gamepad.axes;
+     player.position.x += a[2]*0.1;
+     player.position.z += a[3]*0.1;
+   }
+ });
+}
+
+// ===== LOOP =====
 function animate(){
-  renderer.setAnimationLoop(render);
-}
-
-function render(){
-  movePlayer();
-  renderer.render(scene, camera);
-}
-
-function movePlayer(){
-  const session = renderer.xr.getSession();
-  if(!session) return;
-
-  const sources = session.inputSources;
-
-  sources.forEach(source=>{
-    if(source.gamepad){
-      const axes = source.gamepad.axes;
-
-      const speed = 0.1;
-
-      player.position.x += axes[2] * speed;
-      player.position.z += axes[3] * speed;
-    }
-  });
-}
-
-function onResize(){
-  camera.aspect = window.innerWidth/window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+ renderer.setAnimationLoop(()=>{
+   move();
+   renderer.render(scene,camera);
+ });
 }
 </script>
 

@@ -2,260 +2,124 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>Fábrica Taylorista VR PRO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fábrica Taylorista VR</title>
+
+<script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+
 <style>
-body { margin:0; overflow:hidden; font-family:Arial; }
+body { margin: 0; overflow: hidden; }
+#quizUI {
+  position: absolute;
+  bottom: 20px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-family: Arial;
+}
+button {
+  padding: 10px;
+  margin: 5px;
+  font-size: 16px;
+}
 </style>
 </head>
+
 <body>
 
-<script type="module">
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
-import { VRButton } from "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/webxr/VRButton.js";
+<div id="quizUI"></div>
 
-let scene, camera, renderer, player;
-let controller1, controller2;
-let interactables = [];
-let currentQuiz = null;
-let score = 0;
+<a-scene vr-mode-ui="enabled: true">
 
-const quiz = [
- {q:"Quem criou o Taylorismo?", a:["Marx","Taylor","Ford"], c:1},
- {q:"Objetivo principal?", a:["Diminuir produção","Aumentar eficiência","Parar fábricas"], c:1}
+<!-- Luz -->
+<a-light type="ambient" intensity="0.6"></a-light>
+<a-light type="directional" position="2 4 2"></a-light>
+
+<!-- Chão -->
+<a-plane rotation="-90 0 0" width="50" height="50" color="#555"></a-plane>
+
+<!-- Pistões (fábrica) -->
+<a-box position="-3 1 -5" color="gray" animation="property: position; to: -3 3 -5; dir: alternate; loop: true; dur: 1000"></a-box>
+<a-box position="3 1 -5" color="gray" animation="property: position; to: 3 3 -5; dir: alternate; loop: true; dur: 800"></a-box>
+
+<!-- NPC -->
+<a-box id="npc" position="0 1 -3" color="blue"></a-box>
+<a-text value="NPC (Clique)" position="0 2 -3" align="center"></a-text>
+
+<!-- Jogador -->
+<a-entity id="player" position="0 1.6 5">
+  <a-camera wasd-controls look-controls></a-camera>
+</a-entity>
+
+</a-scene>
+
+<script>
+let quiz = [
+  {
+    pergunta: "O que é Taylorismo?",
+    opcoes: ["Organização científica do trabalho", "Tipo de máquina"],
+    correta: 0
+  },
+  {
+    pergunta: "Quem criou o Taylorismo?",
+    opcoes: ["Taylor", "Einstein"],
+    correta: 0
+  },
+  {
+    pergunta: "Objetivo principal?",
+    opcoes: ["Eficiência", "Diversão"],
+    correta: 0
+  }
 ];
 
-init();
-animate();
+let atual = 0;
 
-// ===== INIT =====
-function init(){
- scene = new THREE.Scene();
- scene.background = new THREE.Color(0x0a0f1c);
-
- camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-
- renderer = new THREE.WebGLRenderer({antialias:true});
- renderer.setSize(innerWidth, innerHeight);
- renderer.xr.enabled = true;
- document.body.appendChild(renderer.domElement);
- document.body.appendChild(VRButton.createButton(renderer));
-
- // luz
- const light = new THREE.HemisphereLight(0xffffff,0x444444,1.2);
- scene.add(light);
-
- // chão
- const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(100,100),
-  new THREE.MeshStandardMaterial({color:0x444444})
- );
- floor.rotation.x = -Math.PI/2;
- scene.add(floor);
-
- // player
- player = new THREE.Group();
- player.position.set(0,1.6,5);
- player.add(camera);
- scene.add(player);
-
- // estações
- createStation(-5,0,"Taylorismo");
- createStation(5,0,"Divisão do trabalho");
-
- // NPC
- createNPC(0,0);
-
- // QUIZ TERMINAL
- createQuizTerminal(0,10);
-
- // controles VR
- controller1 = renderer.xr.getController(0);
- controller2 = renderer.xr.getController(1);
- scene.add(controller1);
- scene.add(controller2);
-
- controller1.addEventListener("selectstart", onSelect);
- controller2.addEventListener("selectstart", onSelect);
-
- addLaser(controller1);
- addLaser(controller2);
-}
-
-// ===== ESTAÇÕES =====
-function createStation(x,z,text){
- const mesh = new THREE.Mesh(
-  new THREE.BoxGeometry(2,2,2),
-  new THREE.MeshStandardMaterial({color:0x2563eb})
- );
- mesh.position.set(x,1,z);
- mesh.userData = {type:"station", text};
- scene.add(mesh);
- interactables.push(mesh);
-}
-
-// ===== NPC =====
-function createNPC(x,z){
- const npc = new THREE.Mesh(
-  new THREE.CapsuleGeometry(0.5,1.2,4,8),
-  new THREE.MeshStandardMaterial({color:0xfacc15})
- );
- npc.position.set(x,1,z);
- npc.userData = {type:"npc"};
- scene.add(npc);
- interactables.push(npc);
-}
-
-// ===== QUIZ =====
-function createQuizTerminal(x,z){
- const term = new THREE.Mesh(
-  new THREE.BoxGeometry(2,2,2),
-  new THREE.MeshStandardMaterial({color:0x10b981})
- );
- term.position.set(x,1,z);
- term.userData = {type:"quiz"};
- scene.add(term);
- interactables.push(term);
-}
-
-// ===== LASER =====
-function addLaser(controller){
- const geo = new THREE.BufferGeometry().setFromPoints([
-  new THREE.Vector3(0,0,0),
-  new THREE.Vector3(0,0,-1)
- ]);
- const line = new THREE.Line(geo);
- line.scale.z = 10;
- controller.add(line);
-}
-
-// ===== INTERAÇÃO =====
-function onSelect(e){
- const controller = e.target;
-
- const raycaster = new THREE.Raycaster();
- const tempMatrix = new THREE.Matrix4();
-
- tempMatrix.identity().extractRotation(controller.matrixWorld);
- raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
- raycaster.ray.direction.set(0,0,-1).applyMatrix4(tempMatrix);
-
- const hit = raycaster.intersectObjects(interactables);
-
- if(hit.length>0){
-  const obj = hit[0].object;
-
-  if(obj.userData.type==="station"){
-    showText(obj.userData.text);
+function mostrarQuiz() {
+  if (atual >= quiz.length) {
+    document.getElementById("quizUI").innerHTML =
+      "<h2>Fim do Quiz!</h2>";
+    return;
   }
 
-  if(obj.userData.type==="npc"){
-    showText("NPC: O trabalho aqui é repetitivo!");
+  let q = quiz[atual];
+
+  let html = `<h2>${q.pergunta}</h2>`;
+  q.opcoes.forEach((op, i) => {
+    html += `<button onclick="responder(${i})">${op}</button>`;
+  });
+
+  document.getElementById("quizUI").innerHTML = html;
+}
+
+function responder(i) {
+  if (i === quiz[atual].correta) {
+    alert("Correto!");
+  } else {
+    alert("Errado!");
   }
+  atual++;
+  mostrarQuiz();
+}
 
-  if(obj.userData.type==="quiz"){
-    startQuiz();
+// Clique no NPC inicia quiz
+document.querySelector("#npc").addEventListener("click", () => {
+  mostrarQuiz();
+});
+
+// Movimento mobile (corrigido)
+let player = document.querySelector("#player");
+document.addEventListener("touchmove", (e) => {
+  player.object3D.position.z -= 0.05;
+});
+
+// Pulo
+document.addEventListener("keydown", (e) => {
+  if (e.code === "Space") {
+    let pos = player.object3D.position;
+    pos.y += 1;
+    setTimeout(()=> pos.y -= 1, 300);
   }
-
-  if(obj.userData.answer!==undefined){
-    checkAnswer(obj.userData.answer);
-  }
- }
-}
-
-// ===== TEXTO 3D =====
-function showText(text){
- if(currentQuiz) scene.remove(currentQuiz);
-
- const canvas = document.createElement("canvas");
- canvas.width = 512;
- canvas.height = 256;
- const ctx = canvas.getContext("2d");
-
- ctx.fillStyle="black";
- ctx.fillRect(0,0,512,256);
- ctx.fillStyle="white";
- ctx.font="30px Arial";
- ctx.fillText(text,20,120);
-
- const tex = new THREE.CanvasTexture(canvas);
-
- const mesh = new THREE.Mesh(
-  new THREE.PlaneGeometry(4,2),
-  new THREE.MeshBasicMaterial({map:tex})
- );
-
- mesh.position.set(0,2,-3);
- player.add(mesh);
- currentQuiz = mesh;
-}
-
-// ===== QUIZ 3D =====
-let quizIndex = 0;
-
-function startQuiz(){
- quizIndex = 0;
- score = 0;
- nextQuestion();
-}
-
-function nextQuestion(){
- if(currentQuiz) scene.remove(currentQuiz);
-
- if(quizIndex >= quiz.length){
-   showText("Fim! Pontuação: "+score);
-   return;
- }
-
- const q = quiz[quizIndex];
-
- showText(q.q);
-
- q.a.forEach((ans,i)=>{
-   const btn = new THREE.Mesh(
-     new THREE.BoxGeometry(1.5,0.5,0.3),
-     new THREE.MeshStandardMaterial({color:0x2563eb})
-   );
-
-   btn.position.set(-2 + i*2,1.2,-3);
-   btn.userData = {answer:i, correct:q.c};
-
-   player.add(btn);
-   interactables.push(btn);
- });
-}
-
-function checkAnswer(i){
- const q = quiz[quizIndex];
-
- if(i === q.c){
-   score++;
- }
-
- quizIndex++;
- nextQuestion();
-}
-
-// ===== MOVIMENTO =====
-function move(){
- const session = renderer.xr.getSession();
- if(!session) return;
-
- session.inputSources.forEach(src=>{
-   if(src.gamepad){
-     const a = src.gamepad.axes;
-     player.position.x += a[2]*0.1;
-     player.position.z += a[3]*0.1;
-   }
- });
-}
-
-// ===== LOOP =====
-function animate(){
- renderer.setAnimationLoop(()=>{
-   move();
-   renderer.render(scene,camera);
- });
-}
+});
 </script>
 
 </body>

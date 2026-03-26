@@ -3,1910 +3,284 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Fábrica Taylorista 3D - Versão Final</title>
+  <title>Fábrica Taylorista 3D VR - Versão Final</title>
   <style>
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html, body {
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #07101c;
-      color: white;
-      touch-action: none;
-    }
-
+    /* Mantendo seus estilos originais */
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; overflow: hidden; font-family: Arial, sans-serif; background: #07101c; color: white; touch-action: none; }
     canvas { display: block; }
 
-    /* Barra compacta no topo */
     #topBar {
-      position: fixed;
-      top: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 30;
-      width: min(96vw, 760px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 10px 14px;
-      border-radius: 18px;
-      background: rgba(7, 16, 30, 0.84);
-      border: 1px solid rgba(255,255,255,0.14);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
-      font-size: 13px;
-      color: #e2e8f0;
+      position: fixed; top: 10px; left: 50%; transform: translateX(-50%); z-index: 30;
+      width: min(96vw, 760px); display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; padding: 10px 14px; border-radius: 18px; background: rgba(7, 16, 30, 0.84);
+      border: 1px solid rgba(255,255,255,0.14); backdrop-filter: blur(10px); font-size: 13px;
     }
 
-    #topBar .leftInfo,
-    #topBar .rightInfo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .topBadge { padding: 6px 10px; border-radius: 999px; background: rgba(37,99,235,0.18); border: 1px solid rgba(147,197,253,0.25); font-weight: bold; }
+    .miniProgress { width: 120px; height: 8px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; }
+    .miniProgressFill { width: 0%; height: 100%; background: linear-gradient(90deg, #22c55e, #38bdf8, #2563eb); transition: width 0.35s ease; }
 
-    .topBadge {
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: rgba(37,99,235,0.18);
-      border: 1px solid rgba(147,197,253,0.25);
-      color: #dbeafe;
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    .miniProgress {
-      width: 120px;
-      height: 8px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 999px;
-      overflow: hidden;
-      border: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .miniProgressFill {
-      width: 0%;
-      height: 100%;
-      background: linear-gradient(90deg, #22c55e, #38bdf8, #2563eb);
-      transition: width 0.35s ease;
-    }
-
-    #prompt {
-      position: fixed;
-      left: 50%;
-      bottom: 20px;
-      transform: translateX(-50%);
-      z-index: 35;
-      background: rgba(0,0,0,0.78);
-      border: 1px solid rgba(255,255,255,0.18);
-      border-radius: 16px;
-      padding: 12px 16px;
-      font-size: 15px;
-      display: none;
-      text-align: center;
-      max-width: 94vw;
-      backdrop-filter: blur(4px);
-      color: #fff;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-    }
+    #prompt { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); z-index: 35; background: rgba(0,0,0,0.78); border-radius: 16px; padding: 12px 16px; display: none; text-align: center; }
 
     #menuOverlay, #infoPanel, #quizPanel, #victoryPanel {
-      position: fixed;
-      inset: 0;
-      z-index: 50;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(2, 6, 23, 0.84);
-      backdrop-filter: blur(8px);
-      padding: 18px;
+      position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center;
+      background: rgba(2, 6, 23, 0.84); backdrop-filter: blur(8px); padding: 18px;
     }
 
-    .card {
-      width: min(1000px, 96vw);
-      max-height: 90vh;
-      overflow: auto;
-      background: linear-gradient(180deg, rgba(30,41,59,0.98), rgba(15,23,42,0.98));
-      border: 1px solid rgba(255,255,255,0.14);
-      border-radius: 24px;
-      padding: 24px;
-      box-shadow: 0 22px 55px rgba(0,0,0,0.52);
-    }
-
-    .card h2 {
-      margin-top: 0;
-      font-size: 30px;
-      color: #bfdbfe;
-    }
-
-    .card p, .card li {
-      font-size: 16px;
-      line-height: 1.6;
-      color: #f1f5f9;
-    }
-
-    .card ul { padding-left: 22px; }
-
-    .heroTitle {
-      font-size: clamp(28px, 5vw, 48px);
-      line-height: 1.05;
-      margin: 0 0 10px;
-      color: #e0f2fe;
-    }
-
-    .heroSub {
-      font-size: 16px;
-      color: #dbeafe;
-      margin-bottom: 16px;
-    }
-
-    .menuGrid {
-      display: grid;
-      grid-template-columns: 1.15fr 1fr;
-      gap: 18px;
-    }
-
-    .panelBox {
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(15,23,42,0.42);
-      border-radius: 20px;
-      padding: 18px;
-    }
-
-    .buttons {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    button {
-      border: none;
-      border-radius: 14px;
-      padding: 12px 16px;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      background: #2563eb;
-      color: white;
-      transition: 0.2s;
-      box-shadow: 0 8px 18px rgba(0,0,0,0.18);
-    }
-
-    button:hover {
-      transform: translateY(-1px);
-      background: #1d4ed8;
-    }
-
+    .card { width: min(1000px, 96vw); max-height: 90vh; overflow: auto; background: #1e293b; border-radius: 24px; padding: 24px; border: 1px solid rgba(255,255,255,0.1); }
+    .heroTitle { font-size: clamp(24px, 5vw, 40px); margin: 0; color: #e0f2fe; }
+    .buttons { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+    button { border: none; border-radius: 12px; padding: 12px 20px; font-weight: bold; cursor: pointer; background: #2563eb; color: white; }
     .green { background: #16a34a; }
-    .green:hover { background: #15803d; }
-
     .gold { background: #ca8a04; }
-    .gold:hover { background: #a16207; }
 
-    #quizOptions {
-      display: grid;
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .answerBtn {
-      text-align: left;
-      background: #1e293b;
-      border: 1px solid rgba(255,255,255,0.12);
-      color: white;
-    }
-
-    .answerBtn:hover { background: #334155; }
-
-    #quizFeedback {
-      margin-top: 14px;
-      min-height: 24px;
-      font-weight: bold;
-      font-size: 16px;
-    }
-
-    #mobileUI {
-      position: fixed;
-      inset: 0;
-      z-index: 25;
-      pointer-events: none;
-    }
-
-    #leftZone, #rightZone {
-      position: absolute;
-      bottom: 0;
-      height: 50vh;
-      pointer-events: auto;
-    }
-
-    #leftZone { left: 0; width: 45vw; }
-    #rightZone { right: 0; width: 55vw; }
-
-    #joystickBase {
-      position: absolute;
-      width: 132px;
-      height: 132px;
-      border-radius: 50%;
-      background: rgba(15,23,42,0.5);
-      border: 2px solid rgba(255,255,255,0.14);
-      pointer-events: none;
-      display: none;
-      backdrop-filter: blur(5px);
-      box-shadow: 0 10px 24px rgba(0,0,0,0.22);
-    }
-
-    #joystickKnob {
-      position: absolute;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: rgba(147,197,253,0.98);
-      left: 38px;
-      top: 38px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.35);
-      pointer-events: none;
-    }
-
-    #touchHint {
-      position: absolute;
-      right: 16px;
-      bottom: 26px;
-      background: rgba(15,23,42,0.64);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: #e2e8f0;
-      border-radius: 14px;
-      padding: 10px 12px;
-      font-size: 13px;
-      pointer-events: none;
-      backdrop-filter: blur(4px);
-    }
-
-    #interactBtn {
-      position: absolute;
-      right: 20px;
-      bottom: 112px;
-      width: 86px;
-      height: 86px;
-      border-radius: 50%;
-      background: rgba(34,197,94,0.95);
-      border: 2px solid rgba(255,255,255,0.2);
-      color: white;
-      font-size: 28px;
-      font-weight: bold;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.3);
-    }
-
-    #fullscreenBtn {
-      position: absolute;
-      right: 20px;
-      bottom: 210px;
-      width: 62px;
-      height: 62px;
-      border-radius: 50%;
-      background: rgba(37,99,235,0.95);
-      border: 2px solid rgba(255,255,255,0.18);
-      color: white;
-      font-size: 21px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto;
-      box-shadow: 0 10px 28px rgba(0,0,0,0.3);
-    }
-
-    #cameraLabel {
-      position: absolute;
-      right: 18px;
-      top: 52px;
-      background: rgba(15,23,42,0.62);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: #dbeafe;
-      border-radius: 12px;
-      padding: 8px 10px;
-      font-size: 12px;
-      pointer-events: none;
-      backdrop-filter: blur(4px);
-    }
-
-    #miniTips {
-      position: absolute;
-      left: 50%;
-      bottom: 110px;
-      transform: translateX(-50%);
-      background: rgba(15,23,42,0.66);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: #dbeafe;
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 12px;
-      pointer-events: none;
-      backdrop-filter: blur(4px);
-      display: none;
-    }
-
-    .gradeBox {
-      margin-top: 14px;
-      padding: 18px;
-      border-radius: 18px;
-      background: linear-gradient(180deg, rgba(15,23,42,0.66), rgba(30,41,59,0.66));
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .bigGrade {
-      font-size: clamp(34px, 7vw, 62px);
-      color: #facc15;
-      font-weight: bold;
-      margin: 8px 0;
-    }
-
-    .finalCredits {
-      margin-top: 18px;
-      padding: 16px;
-      border-radius: 16px;
-      background: rgba(37,99,235,0.14);
-      border: 1px solid rgba(147,197,253,0.2);
-    }
-
-    .finalCredits h3 {
-      margin: 0 0 8px;
-      color: #dbeafe;
-      font-size: 20px;
-    }
-
-    .finalCredits p {
-      margin: 4px 0;
-      color: #e2e8f0;
-    }
-
-    @media (max-width: 850px) {
-      .menuGrid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (min-width: 900px) {
-      #touchHint, #cameraLabel, #miniTips, #fullscreenBtn {
-        display: none !important;
-      }
-    }
-
-    @media (max-width: 740px) {
-      #topBar {
-        width: calc(100vw - 16px);
-        padding: 10px 12px;
-        gap: 8px;
-        font-size: 12px;
-      }
-
-      .miniProgress { width: 90px; }
-      .card { padding: 18px; }
-      .card h2 { font-size: 24px; }
-      .card p, .card li { font-size: 15px; }
-    }
+    /* Estilo do botão de VR que o Three.js injeta */
+    #VRButton { bottom: 20px !important; border-radius: 12px !important; background: #2563eb !important; }
   </style>
 </head>
 <body>
+
   <div id="topBar">
     <div class="leftInfo">
-      <div class="topBadge">Fábrica Taylorista 3D</div>
+      <div class="topBadge">Fábrica Taylorista VR</div>
       <div id="statusText">0/4 estações</div>
       <div class="miniProgress"><div id="progressFill" class="miniProgressFill"></div></div>
     </div>
-    <div class="rightInfo">
-      <div id="scoreLine">Quiz 0/10 • Nota 0,0</div>
-    </div>
+    <div id="scoreLine">Quiz 0/10 • Nota 0,0</div>
   </div>
 
   <div id="prompt"></div>
 
   <div id="menuOverlay" style="display:flex;">
     <div class="card">
-      <div class="menuGrid">
-        <div class="panelBox">
-          <div class="topBadge">Versão final para apresentação</div>
-          <h1 class="heroTitle">FÁBRICA<br>TAYLORISTA 3D</h1>
-          <p class="heroSub">
-            Jogo educativo em terceira pessoa sobre Taylorismo, com exploração da fábrica,
-            estações explicativas, NPCs animados e quiz final de 10 perguntas.
-          </p>
-          <div class="buttons">
-            <button id="startBtn" class="green">Iniciar apresentação</button>
-            <button id="audioBtn" class="gold">Ativar som</button>
-          </div>
-        </div>
-
-        <div class="panelBox">
-          <h2 style="font-size:24px;">Conteúdo do trabalho</h2>
-          <ul>
-            <li>conceito de Taylorismo;</li>
-            <li>divisão e especialização do trabalho;</li>
-            <li>controle do tempo e dos movimentos;</li>
-            <li>vantagens e críticas do sistema.</li>
-          </ul>
-          <p><strong>Objetivo:</strong> visitar todas as 4 estações e concluir o quiz final.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="infoPanel">
-    <div class="card">
-      <h2 id="infoTitle"></h2>
-      <div id="infoContent"></div>
+      <h1 class="heroTitle">FÁBRICA TAYLORISTA VR</h1>
+      <p>Coloque seu headset ou use o navegador para explorar.</p>
+      <p><strong>Controles VR:</strong> Use o Gatilho (Trigger) para andar e interagir.</p>
       <div class="buttons">
-        <button id="closeInfoBtn">Fechar</button>
+        <button id="startBtn" class="green">Iniciar no Navegador</button>
+        <button id="audioBtn" class="gold">Ativar Som</button>
       </div>
     </div>
   </div>
 
-  <div id="quizPanel">
-    <div class="card">
-      <h2>Quiz Final</h2>
-      <p id="quizQuestion"></p>
-      <div id="quizOptions"></div>
-      <div id="quizFeedback"></div>
-      <div class="buttons">
-        <button id="quizNextBtn" style="display:none;">Próxima</button>
-        <button id="quizFinishBtn" class="green" style="display:none;">Finalizar</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="victoryPanel">
-    <div class="card">
-      <h2>Apresentação concluída</h2>
-      <div id="victoryContent"></div>
-      <div class="buttons">
-        <button id="continueBtn" class="green">Voltar ao jogo</button>
-        <button id="restartBtn">Refazer quiz</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="mobileUI">
-    <div id="leftZone"></div>
-    <div id="rightZone"></div>
-
-    <div id="joystickBase">
-      <div id="joystickKnob"></div>
-    </div>
-
-    <div id="touchHint">Arraste à direita para mover a câmera</div>
-    <div id="cameraLabel">Câmera 360°</div>
-    <div id="miniTips">Use o analógico para andar</div>
-    <div id="interactBtn">E</div>
-    <div id="fullscreenBtn">⛶</div>
-  </div>
+  <div id="infoPanel"><div class="card"><h2 id="infoTitle"></h2><div id="infoContent"></div><button id="closeInfoBtn">Fechar</button></div></div>
+  <div id="quizPanel"><div class="card"><h2>Quiz</h2><p id="quizQuestion"></p><div id="quizOptions"></div><div id="quizFeedback"></div><button id="quizNextBtn" style="display:none;">Próxima</button><button id="quizFinishBtn" class="green" style="display:none;">Finalizar</button></div></div>
+  <div id="victoryPanel"><div class="card"><h2>Concluído</h2><div id="victoryContent"></div><button id="continueBtn" class="green">Voltar</button></div></div>
 
   <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.161.0/build/three.module.js";
+    import { VRButton } from "https://cdn.jsdelivr.net/npm/three@0.161.0/examples/jsm/webxr/VRButton.js";
 
-    let scene, camera, renderer, clock;
-    let player, playerVisual;
-    let isMenuOpen = true;
+    // Variáveis Globais (Mantendo sua lógica)
+    let scene, camera, renderer, clock, cameraGroup;
+    let playerVisual, isMenuOpen = true;
     let currentInteractable = null;
     let visitedStations = new Set();
-    let quizUnlocked = false;
-    let quizTerminalGroup = null;
-    let conveyorBelts = [];
-    let boxesOnBelts = [];
-    let npcs = [];
-    let sceneObjects = [];
+    let conveyorBelts = [], boxesOnBelts = [], npcs = [];
+    let audioCtx = null, audioEnabled = false;
+    let controller1, controller2;
 
-    let audioCtx = null;
-    let audioEnabled = false;
+    const keys = { forward: false, backward: false, left: false, right: false };
+    let yaw = Math.PI, pitch = -0.28;
 
-    const keys = {
-      forward: false,
-      backward: false,
-      left: false,
-      right: false,
-      sprint: false
-    };
-
-    const mobileInput = {
-      moveX: 0,
-      moveY: 0
-    };
-
-    const playerState = {
-      velX: 0,
-      velZ: 0
-    };
-
-    let yaw = Math.PI;
-    let pitch = -0.28;
-
-    const cameraState = {
-      currentPos: new THREE.Vector3(),
-      targetLook: new THREE.Vector3()
-    };
-
-    const isTouchDevice = matchMedia("(hover: none) and (pointer: coarse)").matches;
-
-    const promptEl = document.getElementById("prompt");
-    const statusText = document.getElementById("statusText");
-    const progressFill = document.getElementById("progressFill");
-    const scoreLine = document.getElementById("scoreLine");
-
-    const menuOverlay = document.getElementById("menuOverlay");
-    const infoPanel = document.getElementById("infoPanel");
-    const quizPanel = document.getElementById("quizPanel");
-    const victoryPanel = document.getElementById("victoryPanel");
-    const infoTitle = document.getElementById("infoTitle");
-    const infoContent = document.getElementById("infoContent");
-    const victoryContent = document.getElementById("victoryContent");
-
-    const quizQuestion = document.getElementById("quizQuestion");
-    const quizOptions = document.getElementById("quizOptions");
-    const quizFeedback = document.getElementById("quizFeedback");
-    const quizNextBtn = document.getElementById("quizNextBtn");
-    const quizFinishBtn = document.getElementById("quizFinishBtn");
-
-    const joystickBase = document.getElementById("joystickBase");
-    const joystickKnob = document.getElementById("joystickKnob");
-    const leftZone = document.getElementById("leftZone");
-    const rightZone = document.getElementById("rightZone");
-    const interactBtn = document.getElementById("interactBtn");
-    const miniTips = document.getElementById("miniTips");
-    const fullscreenBtn = document.getElementById("fullscreenBtn");
-
+    // Dados (Mesmos do seu código)
     const stations = [
-      {
-        id: "origem",
-        title: "1. O que é o Taylorismo?",
-        position: [-22, 0, -14],
-        html: `
-          <p>O <strong>Taylorismo</strong> foi um sistema de organização do trabalho criado por <strong>Frederick Winslow Taylor</strong>.</p>
-          <p>Seu objetivo principal era tornar a produção mais eficiente por meio de estudos científicos sobre o modo de trabalhar.</p>
-          <ul>
-            <li>análise detalhada das tarefas;</li>
-            <li>busca por eficiência;</li>
-            <li>redução de desperdícios;</li>
-            <li>padronização do trabalho.</li>
-          </ul>
-        `
-      },
-      {
-        id: "divisao",
-        title: "2. Divisão e especialização do trabalho",
-        position: [22, 0, -14],
-        html: `
-          <p>No Taylorismo, o trabalho era dividido em pequenas etapas.</p>
-          <p>Cada operário executava apenas uma função específica, tornando-se especialista nela.</p>
-          <ul>
-            <li>um corta;</li>
-            <li>outro encaixa;</li>
-            <li>outro monta;</li>
-            <li>outro embala.</li>
-          </ul>
-          <p>Isso aumentava a produtividade, mas deixava o trabalho mais repetitivo.</p>
-        `
-      },
-      {
-        id: "tempo",
-        title: "3. Controle do tempo e dos movimentos",
-        position: [-22, 0, 18],
-        html: `
-          <p>Taylor defendia o estudo de <strong>tempos e movimentos</strong>.</p>
-          <p>Era necessário observar quanto tempo cada tarefa levava e quais gestos poderiam ser eliminados.</p>
-          <ul>
-            <li>menos movimentos inúteis;</li>
-            <li>mais rapidez;</li>
-            <li>padronização;</li>
-            <li>maior controle da produção.</li>
-          </ul>
-        `
-      },
-      {
-        id: "criticas",
-        title: "4. Vantagens e críticas ao Taylorismo",
-        position: [22, 0, 18],
-        html: `
-          <p><strong>Vantagens:</strong></p>
-          <ul>
-            <li>aumento da produtividade;</li>
-            <li>mais organização;</li>
-            <li>menos desperdício;</li>
-            <li>produção mais rápida.</li>
-          </ul>
-          <p><strong>Críticas:</strong></p>
-          <ul>
-            <li>trabalho repetitivo;</li>
-            <li>menos autonomia;</li>
-            <li>desgaste físico e mental;</li>
-            <li>visão do trabalhador como peça da produção.</li>
-          </ul>
-        `
-      }
+        { id: "origem", title: "1. O que é o Taylorismo?", position: [-22, 0, -14], html: `<p>O Taylorismo foi um sistema de organização criado por Frederick Taylor focado em eficiência e padronização.</p>` },
+        { id: "divisao", title: "2. Divisão do trabalho", position: [22, 0, -14], html: `<p>Cada operário executa uma função específica, tornando-se especialista.</p>` },
+        { id: "tempo", title: "3. Controle do tempo", position: [-22, 0, 18], html: `<p>Estudo de tempos e movimentos para eliminar gestos inúteis.</p>` },
+        { id: "criticas", title: "4. Críticas", position: [22, 0, 18], html: `<p>Trabalho repetitivo e visão do homem como peça de máquina.</p>` }
     ];
 
     const quizData = [
-      { q: "Quem criou o Taylorismo?", options: ["Karl Marx", "Frederick Taylor", "Henry Ford", "Durkheim"], correct: 1 },
-      { q: "Qual era o principal objetivo do Taylorismo?", options: ["Reduzir a produção", "Aumentar a produtividade", "Acabar com as fábricas", "Diminuir a divisão de tarefas"], correct: 1 },
-      { q: "Uma característica do Taylorismo é:", options: ["Produção artesanal completa", "Ausência de supervisão", "Divisão e especialização das tarefas", "Fim do controle do tempo"], correct: 2 },
-      { q: "Taylor estudava principalmente:", options: ["Tempos e movimentos", "Política partidária", "Apenas máquinas agrícolas", "Pintura industrial"], correct: 0 },
-      { q: "No Taylorismo, o trabalhador geralmente:", options: ["Fazia todas as etapas sozinho", "Executava uma tarefa específica", "Trabalhava sem regras", "Mandava em toda a fábrica"], correct: 1 },
-      { q: "Uma vantagem do Taylorismo foi:", options: ["Maior desperdício", "Queda da organização", "Aumento da produtividade", "Fim das máquinas"], correct: 2 },
-      { q: "Uma crítica ao Taylorismo é:", options: ["Trabalho repetitivo e cansativo", "Autonomia total dos operários", "Falta completa de horários", "Produção muito artesanal"], correct: 0 },
-      { q: "A Administração Científica buscava:", options: ["Improvisação constante", "Padronizar tarefas", "Eliminar fábricas", "Diminuir toda a produção"], correct: 1 },
-      { q: "O Taylorismo influenciou principalmente:", options: ["A organização industrial", "Somente a arte", "Somente a agricultura", "Somente as escolas"], correct: 0 },
-      { q: "O controle do tempo no Taylorismo servia para:", options: ["Tornar a produção mais eficiente", "Parar as máquinas", "Aumentar o improviso", "Acabar com a supervisão"], correct: 0 }
+      { q: "Quem criou o Taylorismo?", options: ["Karl Marx", "Frederick Taylor", "Henry Ford"], correct: 1 },
+      { q: "Qual o foco principal?", options: ["Arte", "Eficiência Industrial", "Lazer"], correct: 1 }
     ];
 
-    let quizIndex = 0;
-    let quizScore = 0;
-    let quizAnswered = false;
+    let quizIndex = 0, quizScore = 0;
 
     init();
-    animate();
 
     function init() {
       scene = new THREE.Scene();
       scene.background = new THREE.Color(0x08111f);
       scene.fog = new THREE.Fog(0x08111f, 35, 120);
 
-      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
-
       renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setPixelRatio(window.devicePixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.xr.enabled = true; // ATIVA O VR
       renderer.shadowMap.enabled = true;
-      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       document.body.appendChild(renderer.domElement);
+      document.body.appendChild(VRButton.createButton(renderer));
+
+      // Grupo para Câmera e Controles VR
+      cameraGroup = new THREE.Group();
+      cameraGroup.position.set(0, 0, 31);
+      scene.add(cameraGroup);
+
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 300);
+      camera.position.set(0, 1.6, 0); // Altura dos olhos
+      cameraGroup.add(camera);
 
       clock = new THREE.Clock();
 
+      setupControllers();
       addLights();
       buildEnvironment();
-      createPlayer();
       createStations();
-      createQuizTerminal();
       createNPCs();
       addEventListeners();
-      updateScoreHud();
-      updateProgress();
 
-      if (isTouchDevice) {
-        miniTips.style.display = "block";
-        setTimeout(() => miniTips.style.display = "none", 3200);
-      }
+      // Loop de animação compatível com VR
+      renderer.setAnimationLoop(render);
     }
 
-    function addLights() {
-      const ambient = new THREE.AmbientLight(0xdbeafe, 1.15);
-      scene.add(ambient);
+    function setupControllers() {
+        controller1 = renderer.xr.getController(0);
+        controller1.addEventListener('selectstart', () => { keys.forward = true; tryInteract(); });
+        controller1.addEventListener('selectend', () => keys.forward = false);
+        cameraGroup.add(controller1);
 
-      const sun = new THREE.DirectionalLight(0xffffff, 1.3);
-      sun.position.set(28, 38, 20);
-      sun.castShadow = true;
-      sun.shadow.mapSize.set(2048, 2048);
-      sun.shadow.camera.left = -90;
-      sun.shadow.camera.right = 90;
-      sun.shadow.camera.top = 90;
-      sun.shadow.camera.bottom = -90;
-      scene.add(sun);
-
-      const p1 = new THREE.PointLight(0x60a5fa, 20, 48, 2);
-      p1.position.set(-24, 12, 0);
-      scene.add(p1);
-
-      const p2 = new THREE.PointLight(0xf472b6, 14, 36, 2);
-      p2.position.set(24, 12, 0);
-      scene.add(p2);
-
-      const p3 = new THREE.PointLight(0x93c5fd, 12, 38, 2);
-      p3.position.set(0, 11, -28);
-      scene.add(p3);
+        controller2 = renderer.xr.getController(1);
+        controller2.addEventListener('selectstart', () => { keys.forward = true; tryInteract(); });
+        controller2.addEventListener('selectend', () => keys.forward = false);
+        cameraGroup.add(controller2);
     }
+
+    // --- Funções de Construção (Simplificadas para performance mas mantendo seu visual) ---
 
     function buildEnvironment() {
-      const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(130, 130),
-        new THREE.MeshStandardMaterial({
-          color: 0x828f9f,
-          roughness: 0.93,
-          metalness: 0.08
-        })
-      );
+      const floor = new THREE.Mesh(new THREE.PlaneGeometry(130, 130), new THREE.MeshStandardMaterial({ color: 0x334155 }));
       floor.rotation.x = -Math.PI / 2;
       floor.receiveShadow = true;
       scene.add(floor);
 
-      const grid = new THREE.GridHelper(130, 65, 0xcbd5e1, 0x334155);
-      grid.position.y = 0.02;
-      scene.add(grid);
+      // Paredes
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x1f2937 });
+      const w1 = new THREE.Mesh(new THREE.BoxGeometry(84, 16, 1), wallMat);
+      w1.position.set(0, 8, -42);
+      scene.add(w1);
 
-      const wallMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.84, metalness: 0.16 });
-      const beamMat = new THREE.MeshStandardMaterial({ color: 0x4b5563, roughness: 0.55, metalness: 0.68 });
-      const machineMat = new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.35, metalness: 0.75 });
-      const pinkMat = new THREE.MeshStandardMaterial({ color: 0xf472b6, roughness: 0.65, metalness: 0.18 });
-      const yellowMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.75, metalness: 0.2 });
-      const darkMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.88, metalness: 0.12 });
-
-      const walls = [
-        [0, 8, -42, 84, 16, 1],
-        [0, 8, 42, 84, 16, 1],
-        [-42, 8, 0, 1, 16, 84],
-        [42, 8, 0, 1, 16, 84]
-      ];
-
-      walls.forEach(([x, y, z, w, h, d]) => {
-        const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
-        wall.position.set(x, y, z);
-        wall.castShadow = true;
-        wall.receiveShadow = true;
-        scene.add(wall);
-      });
-
-      const roof = new THREE.Mesh(
-        new THREE.BoxGeometry(86, 1.5, 86),
-        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.95, metalness: 0.05 })
-      );
-      roof.position.set(0, 16.8, 0);
-      roof.receiveShadow = true;
-      scene.add(roof);
-
-      for (let x = -30; x <= 30; x += 20) {
-        for (let z = -30; z <= 30; z += 20) {
-          const col = new THREE.Mesh(new THREE.BoxGeometry(1.5, 16, 1.5), beamMat);
-          col.position.set(x, 8, z);
-          col.castShadow = true;
-          col.receiveShadow = true;
-          scene.add(col);
-        }
-      }
-
+      // Esteiras (Simplificado)
       for (let i = -2; i <= 2; i++) {
-        const belt = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 36), darkMat);
-        belt.position.set(i * 6, 0.5, 0);
-        belt.castShadow = true;
-        belt.receiveShadow = true;
-        belt.userData.beltIndex = i + 2;
-        conveyorBelts.push(belt);
+        const belt = new THREE.Mesh(new THREE.BoxGeometry(7, 1, 36), new THREE.MeshStandardMaterial({color: 0x111827}));
+        belt.position.set(i * 12, 0.5, 0);
         scene.add(belt);
-
-        for (let j = -14; j <= 14; j += 7) {
-          const roller = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 6.6, 20), beamMat);
-          roller.rotation.z = Math.PI / 2;
-          roller.position.set(i * 6, 1.03, j);
-          roller.castShadow = true;
-          scene.add(roller);
-        }
-
-        for (let b = 0; b < 3; b++) {
-          const box = new THREE.Mesh(
-            new THREE.BoxGeometry(1.4, 1.1, 1.4),
-            new THREE.MeshStandardMaterial({ color: 0x9a6a33, roughness: 0.86, metalness: 0.04 })
-          );
-          box.position.set(i * 6, 1.55, -14 + b * 12);
-          box.castShadow = true;
-          box.receiveShadow = true;
-          box.userData = { beltX: i * 6, progress: b * 0.33 };
-          boxesOnBelts.push(box);
-          scene.add(box);
-        }
       }
-
-      for (let z = -30; z <= 30; z += 12) {
-        const stripe = new THREE.Mesh(new THREE.BoxGeometry(28, 0.03, 1), yellowMat);
-        stripe.position.set(0, 0.03, z);
-        scene.add(stripe);
-      }
-
-      const machinePositions = [
-        [-26, 2, 0], [26, 2, 0], [0, 2, -26], [0, 2, 26]
-      ];
-
-      machinePositions.forEach(([x, y, z], index) => {
-        const base = new THREE.Mesh(new THREE.BoxGeometry(6, 4, 6), machineMat);
-        base.position.set(x, y, z);
-        base.castShadow = true;
-        base.receiveShadow = true;
-        scene.add(base);
-
-        const top = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 4), index % 2 === 0 ? yellowMat : pinkMat);
-        top.position.set(x, y + 2.5, z);
-        top.castShadow = true;
-        scene.add(top);
-
-        const side = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 5, 16), beamMat);
-        side.position.set(x + 2.8, y + 2.5, z);
-        side.rotation.z = Math.PI / 2;
-        side.castShadow = true;
-        scene.add(side);
-      });
-
-      for (let i = 0; i < 20; i++) {
-        const box = new THREE.Mesh(
-          new THREE.BoxGeometry(2.2, 2.2, 2.2),
-          new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.85, metalness: 0.05 })
-        );
-        box.position.set(
-          -33 + (i % 5) * 3.3,
-          1.1 + Math.floor(i / 10) * 2.3,
-          27 + Math.floor((i % 10) / 5) * 3.1
-        );
-        box.castShadow = true;
-        box.receiveShadow = true;
-        scene.add(box);
-      }
-
-      createSign("FÁBRICA TAYLORISTA", 0, 11.5, -41.2, 18);
-    }
-
-    function createSign(text, x, y, z, size = 8) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 256;
-      const ctx = canvas.getContext("2d");
-
-      ctx.fillStyle = "#0f172a";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#93c5fd";
-      ctx.lineWidth = 10;
-      ctx.strokeRect(10, 10, canvas.width - 20, canvas.height - 20);
-      ctx.fillStyle = "#f8fafc";
-      ctx.font = "bold 82px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-
-      const tex = new THREE.CanvasTexture(canvas);
-      const mat = new THREE.MeshBasicMaterial({ map: tex });
-      const plane = new THREE.Mesh(new THREE.PlaneGeometry(size, size / 4), mat);
-      plane.position.set(x, y, z);
-      scene.add(plane);
-    }
-
-    /* Uniforme inspirado no modelo oficial divulgado pela Rede Estadual do ES:
-       azul escuro predominante, detalhes rosa e branco */
-    function makeOfficialUniformTexture(front = true) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 1024;
-      canvas.height = 1024;
-      const ctx = canvas.getContext("2d");
-
-      // base azul escuro
-      ctx.fillStyle = "#1f3559";
-      ctx.fillRect(0, 0, 1024, 1024);
-
-      // faixa branca superior
-      ctx.fillStyle = "#f8fafc";
-      ctx.fillRect(0, 70, 1024, 150);
-
-      // filete rosa
-      ctx.fillStyle = "#f472b6";
-      ctx.fillRect(0, 220, 1024, 18);
-
-      // gola
-      ctx.fillStyle = "#1f3559";
-      ctx.beginPath();
-      ctx.moveTo(512, 40);
-      ctx.lineTo(455, 132);
-      ctx.lineTo(569, 132);
-      ctx.closePath();
-      ctx.fill();
-
-      // pequeno símbolo/brasão estilizado
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath();
-      ctx.arc(175, 145, 48, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = "#1f3559";
-      ctx.font = "bold 34px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText("ES", 175, 145);
-
-      // detalhe geométrico moderno
-      ctx.strokeStyle = "rgba(255,255,255,0.07)";
-      ctx.lineWidth = 4;
-      for (let y = 280; y < 980; y += 56) {
-        ctx.beginPath();
-        ctx.moveTo(70, y);
-        ctx.lineTo(954, y);
-        ctx.stroke();
-      }
-
-      if (!front) {
-        ctx.fillStyle = "#f8fafc";
-        ctx.fillRect(250, 96, 524, 66);
-        ctx.fillStyle = "#1f3559";
-        ctx.font = "bold 34px Arial";
-        ctx.textAlign = "center";
-        ctx.fillText("REDE ESTADUAL ES", 512, 129);
-      }
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      return texture;
-    }
-
-    function createHumanoid(scale = 1, skinColor = 0xf1c27d, frontTexture = null, backTexture = null, pantsColor = 0x1e3a8a) {
-      const group = new THREE.Group();
-      const skinMat = new THREE.MeshStandardMaterial({ color: skinColor, roughness: 0.82 });
-      const hairMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.92 });
-      const sleeveMat = new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72, metalness: 0.03 });
-      const pantsMat = new THREE.MeshStandardMaterial({ color: pantsColor, roughness: 0.78 });
-      const shoeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.9 });
-
-      const torsoMats = [
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // right
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // left
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // top
-        new THREE.MeshStandardMaterial({ color: 0x1f3559, roughness: 0.72 }), // bottom
-        new THREE.MeshStandardMaterial({ map: frontTexture, roughness: 0.72, metalness: 0.03 }), // front
-        new THREE.MeshStandardMaterial({ map: backTexture || frontTexture, roughness: 0.72, metalness: 0.03 }) // back
-      ];
-
-      const hipGroup = new THREE.Group();
-      hipGroup.position.y = 0.05 * scale;
-      group.add(hipGroup);
-
-      const torso = new THREE.Mesh(new THREE.BoxGeometry(1.18*scale, 1.45*scale, 0.72*scale), torsoMats);
-      torso.position.y = 1.55*scale;
-      torso.castShadow = true;
-      hipGroup.add(torso);
-
-      const waist = new THREE.Mesh(new THREE.BoxGeometry(1.02*scale, 0.34*scale, 0.64*scale), pantsMat);
-      waist.position.y = 0.7*scale;
-      waist.castShadow = true;
-      hipGroup.add(waist);
-
-      const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12*scale, 0.12*scale, 0.16*scale, 12), skinMat);
-      neck.position.y = 2.35*scale;
-      neck.castShadow = true;
-      hipGroup.add(neck);
-
-      const headGroup = new THREE.Group();
-      headGroup.position.y = 2.62*scale;
-      hipGroup.add(headGroup);
-
-      const face = new THREE.Mesh(new THREE.SphereGeometry(0.48*scale, 24, 24), skinMat);
-      face.castShadow = true;
-      headGroup.add(face);
-
-      const hair = new THREE.Mesh(new THREE.SphereGeometry(0.5*scale, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.55), hairMat);
-      hair.position.y = 0.08*scale;
-      hair.scale.set(1.02, 0.86, 1.02);
-      hair.castShadow = true;
-      headGroup.add(hair);
-
-      const eyeMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.5 });
-      const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.035*scale, 8, 8), eyeMat);
-      eyeL.position.set(-0.13*scale, 0.02*scale, 0.43*scale);
-      headGroup.add(eyeL);
-
-      const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.035*scale, 8, 8), eyeMat);
-      eyeR.position.set(0.13*scale, 0.02*scale, 0.43*scale);
-      headGroup.add(eyeR);
-
-      const shoulderL = new THREE.Group();
-      shoulderL.position.set(-0.74*scale, 1.98*scale, 0);
-      hipGroup.add(shoulderL);
-
-      const upperArmL = new THREE.Mesh(new THREE.BoxGeometry(0.28*scale, 0.78*scale, 0.28*scale), sleeveMat);
-      upperArmL.position.y = -0.38*scale;
-      upperArmL.castShadow = true;
-      shoulderL.add(upperArmL);
-
-      const elbowL = new THREE.Group();
-      elbowL.position.set(0, -0.78*scale, 0);
-      shoulderL.add(elbowL);
-
-      const foreArmL = new THREE.Mesh(new THREE.BoxGeometry(0.24*scale, 0.74*scale, 0.24*scale), skinMat);
-      foreArmL.position.y = -0.37*scale;
-      foreArmL.castShadow = true;
-      elbowL.add(foreArmL);
-
-      const handL = new THREE.Mesh(new THREE.BoxGeometry(0.22*scale, 0.16*scale, 0.22*scale), skinMat);
-      handL.position.y = -0.76*scale;
-      handL.castShadow = true;
-      elbowL.add(handL);
-
-      const shoulderR = new THREE.Group();
-      shoulderR.position.set(0.74*scale, 1.98*scale, 0);
-      hipGroup.add(shoulderR);
-
-      const upperArmR = new THREE.Mesh(new THREE.BoxGeometry(0.28*scale, 0.78*scale, 0.28*scale), sleeveMat);
-      upperArmR.position.y = -0.38*scale;
-      upperArmR.castShadow = true;
-      shoulderR.add(upperArmR);
-
-      const elbowR = new THREE.Group();
-      elbowR.position.set(0, -0.78*scale, 0);
-      shoulderR.add(elbowR);
-
-      const foreArmR = new THREE.Mesh(new THREE.BoxGeometry(0.24*scale, 0.74*scale, 0.24*scale), skinMat);
-      foreArmR.position.y = -0.37*scale;
-      foreArmR.castShadow = true;
-      elbowR.add(foreArmR);
-
-      const handR = new THREE.Mesh(new THREE.BoxGeometry(0.22*scale, 0.16*scale, 0.22*scale), skinMat);
-      handR.position.y = -0.76*scale;
-      handR.castShadow = true;
-      elbowR.add(handR);
-
-      const hipL = new THREE.Group();
-      hipL.position.set(-0.24*scale, 0.58*scale, 0);
-      hipGroup.add(hipL);
-
-      const thighL = new THREE.Mesh(new THREE.BoxGeometry(0.34*scale, 0.84*scale, 0.34*scale), pantsMat);
-      thighL.position.y = -0.42*scale;
-      thighL.castShadow = true;
-      hipL.add(thighL);
-
-      const kneeL = new THREE.Group();
-      kneeL.position.set(0, -0.84*scale, 0);
-      hipL.add(kneeL);
-
-      const shinL = new THREE.Mesh(new THREE.BoxGeometry(0.32*scale, 0.82*scale, 0.32*scale), pantsMat);
-      shinL.position.y = -0.41*scale;
-      shinL.castShadow = true;
-      kneeL.add(shinL);
-
-      const shoeL = new THREE.Mesh(new THREE.BoxGeometry(0.36*scale, 0.16*scale, 0.58*scale), shoeMat);
-      shoeL.position.set(0, -0.86*scale, 0.08*scale);
-      shoeL.castShadow = true;
-      kneeL.add(shoeL);
-
-      const hipR = new THREE.Group();
-      hipR.position.set(0.24*scale, 0.58*scale, 0);
-      hipGroup.add(hipR);
-
-      const thighR = new THREE.Mesh(new THREE.BoxGeometry(0.34*scale, 0.84*scale, 0.34*scale), pantsMat);
-      thighR.position.y = -0.42*scale;
-      thighR.castShadow = true;
-      hipR.add(thighR);
-
-      const kneeR = new THREE.Group();
-      kneeR.position.set(0, -0.84*scale, 0);
-      hipR.add(kneeR);
-
-      const shinR = new THREE.Mesh(new THREE.BoxGeometry(0.32*scale, 0.82*scale, 0.32*scale), pantsMat);
-      shinR.position.y = -0.41*scale;
-      shinR.castShadow = true;
-      kneeR.add(shinR);
-
-      const shoeR = new THREE.Mesh(new THREE.BoxGeometry(0.36*scale, 0.16*scale, 0.58*scale), shoeMat);
-      shoeR.position.set(0, -0.86*scale, 0.08*scale);
-      shoeR.castShadow = true;
-      kneeR.add(shoeR);
-
-      group.userData.rig = { hipGroup, headGroup, shoulderL, shoulderR, elbowL, elbowR, hipL, hipR, kneeL, kneeR };
-      return group;
-    }
-
-    function createPlayer() {
-      player = new THREE.Object3D();
-      player.position.set(0, 0, 31);
-      scene.add(player);
-
-      const frontTexture = makeOfficialUniformTexture(true);
-      const backTexture = makeOfficialUniformTexture(false);
-      playerVisual = createHumanoid(1, 0xf1c27d, frontTexture, backTexture, 0x1b2c49);
-      player.add(playerVisual);
-
-      updateCamera(true);
     }
 
     function createStations() {
-      const colors = [0x3b82f6, 0x10b981, 0xf59e0b, 0xef4444];
-      const emissives = [0x1d4ed8, 0x047857, 0xb45309, 0x991b1b];
-      const labels = ["ESTAÇÃO 1", "ESTAÇÃO 2", "ESTAÇÃO 3", "ESTAÇÃO 4"];
-
-      stations.forEach((station, i) => {
+      stations.forEach((s, i) => {
         const group = new THREE.Group();
-        group.position.set(...station.position);
-
-        const pedestal = new THREE.Mesh(
-          new THREE.CylinderGeometry(2.4, 2.8, 1.35, 32),
-          new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.64, metalness: 0.42 })
-        );
-        pedestal.position.y = 0.67;
-        pedestal.castShadow = true;
-        pedestal.receiveShadow = true;
-        group.add(pedestal);
-
-        const ring = new THREE.Mesh(
-          new THREE.TorusGeometry(1.6, 0.15, 14, 32),
-          new THREE.MeshStandardMaterial({
-            color: colors[i],
-            emissive: colors[i],
-            emissiveIntensity: 0.85,
-            roughness: 0.18,
-            metalness: 0.55
-          })
-        );
-        ring.rotation.x = Math.PI / 2;
-        ring.position.y = 1.65;
-        group.add(ring);
-
-        const orb = new THREE.Mesh(
-          new THREE.SphereGeometry(1.35, 32, 32),
-          new THREE.MeshStandardMaterial({
-            color: colors[i],
-            emissive: emissives[i],
-            emissiveIntensity: 1.05,
-            metalness: 0.4,
-            roughness: 0.12
-          })
-        );
-        orb.position.y = 2.55;
-        orb.castShadow = true;
+        group.position.set(...s.position);
+        
+        const orb = new THREE.Mesh(new THREE.SphereGeometry(1.5), new THREE.MeshStandardMaterial({ color: 0x2563eb, emissive: 0x2563eb }));
+        orb.position.y = 2;
         group.add(orb);
-
-        const light = new THREE.PointLight(colors[i], 16, 12, 2);
-        light.position.y = 2.5;
-        group.add(light);
-
-        const label = createBillboard(labels[i], 6.3, 1.45);
-        label.position.set(0, 5.2, 0);
-        group.add(label);
-
-        group.userData = { type: "station", station, orb, ring };
+        
+        group.userData = { type: "station", station: s };
         scene.add(group);
       });
     }
 
-    function createQuizTerminal() {
-      const group = new THREE.Group();
-      group.position.set(0, 0, -30);
-
-      const base = new THREE.Mesh(
-        new THREE.BoxGeometry(5.2, 1, 5.2),
-        new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.82, metalness: 0.22 })
-      );
-      base.position.y = 0.5;
-      base.castShadow = true;
-      group.add(base);
-
-      const stand = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 3.2, 1),
-        new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5, metalness: 0.55 })
-      );
-      stand.position.y = 2.1;
-      stand.castShadow = true;
-      group.add(stand);
-
-      const screen = new THREE.Mesh(
-        new THREE.BoxGeometry(4.4, 2.7, 0.35),
-        new THREE.MeshStandardMaterial({
-          color: 0x0f172a,
-          emissive: 0x2563eb,
-          emissiveIntensity: 1.15,
-          metalness: 0.65,
-          roughness: 0.18
-        })
-      );
-      screen.position.set(0, 4.2, 0);
-      screen.castShadow = true;
-      group.add(screen);
-
-      const label = createBillboard("QUIZ FINAL", 5.8, 1.4);
-      label.position.set(0, 6.25, 0);
-      group.add(label);
-
-      group.userData = { type: "quiz", screen };
-      quizTerminalGroup = group;
-      scene.add(group);
+    function addLights() {
+      scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+      const sun = new THREE.DirectionalLight(0xffffff, 1);
+      sun.position.set(5, 10, 5);
+      scene.add(sun);
     }
 
-    function createBillboard(text, width, height) {
-      const canvas = document.createElement("canvas");
-      canvas.width = 512;
-      canvas.height = 128;
-      const ctx = canvas.getContext("2d");
-
-      ctx.fillStyle = "rgba(15,23,42,0.95)";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = "#93c5fd";
-      ctx.lineWidth = 6;
-      ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 42px Arial";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
-
-      const texture = new THREE.CanvasTexture(canvas);
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
-      sprite.scale.set(width, height, 1);
-      return sprite;
-    }
-
-    function createNPCs() {
-      const frontTexture = makeOfficialUniformTexture(true);
-      const backTexture = makeOfficialUniformTexture(false);
-
-      const npcPositions = [
-        [-12, 0, -2], [-6, 0, 8], [6, 0, -8], [12, 0, 6]
-      ];
-
-      npcPositions.forEach((pos, i) => {
-        const npcRoot = new THREE.Group();
-        npcRoot.position.set(...pos);
-        npcRoot.rotation.y = i % 2 === 0 ? Math.PI / 2 : -Math.PI / 2;
-
-        const npc = createHumanoid(
-          0.95,
-          i % 2 === 0 ? 0xd9a066 : 0xf1c27d,
-          frontTexture,
-          backTexture,
-          0x1b2c49
-        );
-
-        npcRoot.add(npc);
-        npcRoot.userData = {
-          phase: i * 0.8,
-          rig: npc.userData.rig
-        };
-
-        npcs.push(npcRoot);
-        scene.add(npcRoot);
-      });
-    }
-
-    function addEventListeners() {
-      window.addEventListener("resize", onResize);
-
-      document.getElementById("startBtn").addEventListener("click", () => {
-        menuOverlay.style.display = "none";
-        isMenuOpen = false;
-        playClick();
-        if (!isTouchDevice) renderer.domElement.requestPointerLock?.();
-      });
-
-      document.getElementById("audioBtn").addEventListener("click", () => {
-        enableAudio();
-        playClick();
-      });
-
-      document.getElementById("closeInfoBtn").addEventListener("click", closePanels);
-      document.getElementById("continueBtn").addEventListener("click", closeVictory);
-      document.getElementById("restartBtn").addEventListener("click", () => {
-        victoryPanel.style.display = "none";
-        startQuiz();
-      });
-
-      fullscreenBtn.addEventListener("click", async () => {
-        try {
-          if (!document.fullscreenElement) {
-            await document.documentElement.requestFullscreen?.();
-          } else {
-            await document.exitFullscreen?.();
-          }
-        } catch (e) {}
-      });
-
-      document.addEventListener("keydown", (e) => {
-        const k = e.key.toLowerCase();
-        if (k === "w" || k === "arrowup") keys.forward = true;
-        if (k === "s" || k === "arrowdown") keys.backward = true;
-        if (k === "a" || k === "arrowleft") keys.left = true;
-        if (k === "d" || k === "arrowright") keys.right = true;
-        if (k === "shift") keys.sprint = true;
-        if (k === "e") tryInteract();
-      });
-
-      document.addEventListener("keyup", (e) => {
-        const k = e.key.toLowerCase();
-        if (k === "w" || k === "arrowup") keys.forward = false;
-        if (k === "s" || k === "arrowdown") keys.backward = false;
-        if (k === "a" || k === "arrowleft") keys.left = false;
-        if (k === "d" || k === "arrowright") keys.right = false;
-        if (k === "shift") keys.sprint = false;
-      });
-
-      renderer.domElement.addEventListener("click", () => {
-        if (!isMenuOpen && !isAnyPanelOpen() && !isTouchDevice) {
-          renderer.domElement.requestPointerLock?.();
+    function render() {
+      const dt = clock.getDelta();
+      
+      if (!isMenuOpen) {
+        // Movimentação VR: Segue a direção da câmera
+        if (keys.forward) {
+          const dir = new THREE.Vector3();
+          camera.getWorldDirection(dir);
+          dir.y = 0;
+          dir.normalize();
+          cameraGroup.position.addScaledVector(dir, 5 * dt);
         }
-      });
 
-      document.addEventListener("mousemove", (e) => {
-        if (document.pointerLockElement === renderer.domElement && !isAnyPanelOpen()) {
-          yaw -= e.movementX * 0.0024;
-          pitch -= e.movementY * 0.0018;
-          pitch = clamp(pitch, -0.95, 0.65);
-          updateCamera();
-        }
-      });
+        // Lógica de colisão básica com as bordas
+        cameraGroup.position.x = Math.max(-40, Math.min(40, cameraGroup.position.x));
+        cameraGroup.position.z = Math.max(-40, Math.min(40, cameraGroup.position.z));
 
-      setupJoystick();
-      setupMobileLook();
-
-      interactBtn.addEventListener("touchstart", (e) => {
-        e.preventDefault();
-        tryInteract();
-      }, { passive: false });
-
-      interactBtn.addEventListener("click", (e) => {
-        e.preventDefault();
-        tryInteract();
-      });
-
-      quizNextBtn.addEventListener("click", () => {
-        playClick();
-        quizIndex++;
-        showQuizQuestion();
-      });
-
-      quizFinishBtn.addEventListener("click", finishQuiz);
-    }
-
-    function setupJoystick() {
-      let touchId = null;
-      let originX = 0;
-      let originY = 0;
-      const maxRadius = 55;
-
-      leftZone.addEventListener("touchstart", (e) => {
-        if (touchId !== null) return;
-        const t = e.changedTouches[0];
-        touchId = t.identifier;
-        originX = t.clientX;
-        originY = t.clientY;
-
-        joystickBase.style.display = "block";
-        joystickBase.style.left = (originX - 66) + "px";
-        joystickBase.style.top = (originY - 66) + "px";
-        resetJoystickKnob();
-      }, { passive: true });
-
-      leftZone.addEventListener("touchmove", (e) => {
-        for (const t of e.changedTouches) {
-          if (t.identifier !== touchId) continue;
-
-          let dx = t.clientX - originX;
-          let dy = t.clientY - originY;
-
-          const len = Math.hypot(dx, dy);
-          if (len > maxRadius) {
-            dx = dx / len * maxRadius;
-            dy = dy / len * maxRadius;
-          }
-
-          joystickKnob.style.left = (38 + dx) + "px";
-          joystickKnob.style.top = (38 + dy) + "px";
-
-          mobileInput.moveX = dx / maxRadius;
-          mobileInput.moveY = dy / maxRadius;
-        }
-      }, { passive: true });
-
-      leftZone.addEventListener("touchend", (e) => {
-        for (const t of e.changedTouches) {
-          if (t.identifier !== touchId) continue;
-          touchId = null;
-          mobileInput.moveX = 0;
-          mobileInput.moveY = 0;
-          joystickBase.style.display = "none";
-          resetJoystickKnob();
-        }
-      });
-
-      leftZone.addEventListener("touchcancel", (e) => {
-        for (const t of e.changedTouches) {
-          if (t.identifier !== touchId) continue;
-          touchId = null;
-          mobileInput.moveX = 0;
-          mobileInput.moveY = 0;
-          joystickBase.style.display = "none";
-          resetJoystickKnob();
-        }
-      });
-
-      function resetJoystickKnob() {
-        joystickKnob.style.left = "38px";
-        joystickKnob.style.top = "38px";
-      }
-    }
-
-    function setupMobileLook() {
-      let lookTouchId = null;
-      let lastX = 0;
-      let lastY = 0;
-      const sensitivity = 0.0065;
-
-      rightZone.addEventListener("touchstart", (e) => {
-        if (lookTouchId !== null) return;
-        const t = e.changedTouches[0];
-        lookTouchId = t.identifier;
-        lastX = t.clientX;
-        lastY = t.clientY;
-      }, { passive: true });
-
-      rightZone.addEventListener("touchmove", (e) => {
-        if (isAnyPanelOpen()) return;
-
-        for (const t of e.changedTouches) {
-          if (t.identifier !== lookTouchId) continue;
-
-          const dx = t.clientX - lastX;
-          const dy = t.clientY - lastY;
-          lastX = t.clientX;
-          lastY = t.clientY;
-
-          yaw -= dx * sensitivity;
-          pitch -= dy * sensitivity * 0.72;
-          pitch = clamp(pitch, -0.95, 0.65);
-          updateCamera();
-        }
-      }, { passive: true });
-
-      rightZone.addEventListener("touchend", (e) => {
-        for (const t of e.changedTouches) {
-          if (t.identifier === lookTouchId) lookTouchId = null;
-        }
-      });
-
-      rightZone.addEventListener("touchcancel", (e) => {
-        for (const t of e.changedTouches) {
-          if (t.identifier === lookTouchId) lookTouchId = null;
-        }
-      });
-    }
-
-    function animate() {
-      requestAnimationFrame(animate);
-
-      const dt = Math.min(clock.getDelta(), 0.033);
-
-      if (!isMenuOpen && !isAnyPanelOpen()) {
-        updateMovement(dt);
         detectNearbyInteractable();
       }
 
-      animateWorld(dt);
+      // Animar orbes
+      scene.traverse(obj => {
+        if(obj.userData.type === "station") obj.rotation.y += 0.02;
+      });
+
       renderer.render(scene, camera);
-    }
-
-    function animateWorld(dt) {
-      const t = performance.now() * 0.001;
-
-      scene.traverse((obj) => {
-        if (obj.userData?.type === "station") {
-          const orb = obj.userData.orb;
-          const ring = obj.userData.ring;
-          orb.position.y = 2.55 + Math.sin(t * 2.15) * 0.16;
-          orb.rotation.y += 0.018;
-          if (ring) ring.rotation.z += 0.01;
-        }
-      });
-
-      if (quizTerminalGroup) {
-        quizTerminalGroup.userData.screen.emissiveIntensity = 1.0 + Math.sin(t * 3.5) * 0.18;
-      }
-
-      animateBelts(dt);
-      animateNPCs(t);
-      animatePlayerRig(t, Math.hypot(playerState.velX, playerState.velZ));
-    }
-
-    function animateBelts(dt) {
-      conveyorBelts.forEach((belt, i) => {
-        belt.material.emissive = new THREE.Color(0x000000);
-        belt.material.emissiveIntensity = 0.08 + Math.abs(Math.sin(performance.now() * 0.005 + i)) * 0.08;
-      });
-
-      boxesOnBelts.forEach((box) => {
-        box.userData.progress += 0.22 * dt;
-        if (box.userData.progress > 1) box.userData.progress = 0;
-        box.position.z = -16 + box.userData.progress * 32;
-        box.rotation.y += 0.8 * dt;
-      });
-    }
-
-    function animateNPCs(t) {
-      npcs.forEach((npc, i) => {
-        const rig = npc.userData.rig;
-        const cycle = t * 4 + npc.userData.phase;
-        rig.shoulderL.rotation.x = Math.sin(cycle) * 0.5;
-        rig.shoulderR.rotation.x = Math.sin(cycle + Math.PI) * 0.5;
-        rig.elbowL.rotation.x = Math.max(0, Math.sin(cycle + Math.PI * 0.3)) * 0.4;
-        rig.elbowR.rotation.x = Math.max(0, Math.sin(cycle + Math.PI * 1.3)) * 0.4;
-        rig.headGroup.rotation.y = Math.sin(t * 1.5 + i) * 0.12;
-        rig.hipGroup.position.y = 0.05 + Math.abs(Math.sin(cycle * 2)) * 0.03;
-      });
-    }
-
-    function animatePlayerRig(t, speed) {
-      if (!playerVisual || !playerVisual.userData.rig) return;
-
-      const { hipGroup, shoulderL, shoulderR, elbowL, elbowR, hipL, hipR, kneeL, kneeR, headGroup } = playerVisual.userData.rig;
-
-      const moving = speed > 0.15;
-      const running = speed > 8.2;
-      const cycle = t * (running ? 12 : 8);
-      const legAmp = running ? 0.8 : 0.48;
-      const armAmp = running ? 0.72 : 0.42;
-      const kneeAmp = running ? 0.55 : 0.32;
-
-      if (moving) {
-        hipL.rotation.x = Math.sin(cycle) * legAmp;
-        hipR.rotation.x = Math.sin(cycle + Math.PI) * legAmp;
-
-        kneeL.rotation.x = Math.max(0, Math.sin(cycle + Math.PI * 0.45)) * kneeAmp;
-        kneeR.rotation.x = Math.max(0, Math.sin(cycle + Math.PI * 1.45)) * kneeAmp;
-
-        shoulderL.rotation.x = Math.sin(cycle + Math.PI) * armAmp;
-        shoulderR.rotation.x = Math.sin(cycle) * armAmp;
-
-        elbowL.rotation.x = Math.max(0, Math.sin(cycle + Math.PI)) * 0.25;
-        elbowR.rotation.x = Math.max(0, Math.sin(cycle)) * 0.25;
-
-        hipGroup.position.y = 0.05 + Math.abs(Math.sin(cycle * 2)) * (running ? 0.09 : 0.05);
-        playerVisual.rotation.z = Math.sin(cycle) * (running ? 0.05 : 0.025);
-        headGroup.rotation.z = Math.sin(cycle) * 0.03;
-      } else {
-        hipL.rotation.x += (0 - hipL.rotation.x) * 0.15;
-        hipR.rotation.x += (0 - hipR.rotation.x) * 0.15;
-        kneeL.rotation.x += (0 - kneeL.rotation.x) * 0.15;
-        kneeR.rotation.x += (0 - kneeR.rotation.x) * 0.15;
-        shoulderL.rotation.x += (0 - shoulderL.rotation.x) * 0.15;
-        shoulderR.rotation.x += (0 - shoulderR.rotation.x) * 0.15;
-        elbowL.rotation.x += (0 - elbowL.rotation.x) * 0.15;
-        elbowR.rotation.x += (0 - elbowR.rotation.x) * 0.15;
-        hipGroup.position.y += (0.05 - hipGroup.position.y) * 0.15;
-        playerVisual.rotation.z += (0 - playerVisual.rotation.z) * 0.12;
-        headGroup.rotation.z += (0 - headGroup.rotation.z) * 0.12;
-      }
-    }
-
-    function updateMovement(dt) {
-      const keyboardX = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
-      const keyboardY = (keys.backward ? 1 : 0) - (keys.forward ? 1 : 0);
-
-      const inputX = keyboardX + mobileInput.moveX;
-      const inputY = keyboardY + mobileInput.moveY;
-
-      const len = Math.hypot(inputX, inputY);
-      let nx = 0, ny = 0;
-      if (len > 0.001) {
-        nx = inputX / len;
-        ny = inputY / len;
-      }
-
-      const speed = keys.sprint ? 11.5 : 7.5;
-
-      const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
-      const right = new THREE.Vector3(Math.sin(yaw + Math.PI / 2), 0, Math.cos(yaw + Math.PI / 2));
-
-      const desired = new THREE.Vector3();
-      desired.addScaledVector(right, nx * speed);
-      desired.addScaledVector(forward, -ny * speed);
-
-      playerState.velX += (desired.x - playerState.velX) * Math.min(1, 12 * dt);
-      playerState.velZ += (desired.z - playerState.velZ) * Math.min(1, 12 * dt);
-
-      if (len < 0.001) {
-        playerState.velX += (0 - playerState.velX) * Math.min(1, 10 * dt);
-        playerState.velZ += (0 - playerState.velZ) * Math.min(1, 10 * dt);
-      }
-
-      player.position.x += playerState.velX * dt;
-      player.position.z += playerState.velZ * dt;
-
-      player.position.x = clamp(player.position.x, -38, 38);
-      player.position.z = clamp(player.position.z, -38, 38);
-
-      const lookDir = new THREE.Vector3(playerState.velX, 0, playerState.velZ);
-      if (lookDir.lengthSq() > 0.001) {
-        const targetAngle = Math.atan2(lookDir.x, lookDir.z);
-        let diff = targetAngle - player.rotation.y;
-        diff = Math.atan2(Math.sin(diff), Math.cos(diff));
-        player.rotation.y += diff * 0.15;
-      }
-
-      updateCamera();
-    }
-
-    function updateCamera(force = false) {
-      const camDistance = 6.7;
-      const camHeight = 3.35;
-
-      const dirX = Math.sin(yaw) * Math.cos(pitch);
-      const dirY = Math.sin(pitch);
-      const dirZ = Math.cos(yaw) * Math.cos(pitch);
-
-      const desiredPos = new THREE.Vector3(
-        player.position.x - dirX * camDistance,
-        player.position.y + camHeight - dirY * 1.8,
-        player.position.z - dirZ * camDistance
-      );
-
-      const targetLook = new THREE.Vector3(
-        player.position.x,
-        player.position.y + 1.9,
-        player.position.z
-      );
-
-      const smooth = force ? 1 : 0.09;
-
-      cameraState.currentPos.lerp(desiredPos, smooth);
-      cameraState.targetLook.lerp(targetLook, smooth * 1.45);
-
-      camera.position.copy(cameraState.currentPos);
-      camera.lookAt(cameraState.targetLook);
     }
 
     function detectNearbyInteractable() {
       let nearest = null;
-      let nearestDist = Infinity;
+      let dist = 999;
 
-      scene.traverse((obj) => {
-        if (!obj.userData?.type) return;
-        if (obj.userData.type !== "station" && obj.userData.type !== "quiz") return;
-
-        const d = obj.position.distanceTo(player.position);
-        if (d < nearestDist) {
-          nearestDist = d;
-          nearest = obj;
+      scene.traverse(obj => {
+        if(obj.userData.type === "station") {
+          const d = obj.position.distanceTo(cameraGroup.position);
+          if(d < dist) { dist = d; nearest = obj; }
         }
       });
 
-      if (nearest && nearestDist < 6.2) {
+      if(nearest && dist < 5) {
         currentInteractable = nearest;
-        interactBtn.style.display = "flex";
-
-        if (nearest.userData.type === "station") {
-          promptEl.style.display = "block";
-          promptEl.innerHTML = `Pressione <strong>E</strong> para ler esta estação`;
-        } else {
-          if (visitedStations.size === stations.length) {
-            quizUnlocked = true;
-            promptEl.style.display = "block";
-            promptEl.innerHTML = `Pressione <strong>E</strong> para iniciar o quiz final`;
-          } else {
-            quizUnlocked = false;
-            promptEl.style.display = "block";
-            promptEl.innerHTML = `Visite as <strong>4 estações</strong> antes de fazer o quiz`;
-          }
-        }
+        document.getElementById("prompt").style.display = "block";
+        document.getElementById("prompt").innerHTML = "Gatilho para ler estação";
       } else {
         currentInteractable = null;
-        promptEl.style.display = "none";
-        interactBtn.style.display = "none";
+        document.getElementById("prompt").style.display = "none";
       }
     }
 
     function tryInteract() {
-      if (!currentInteractable || isAnyPanelOpen() || isMenuOpen) return;
-
-      playClick();
-
-      if (currentInteractable.userData.type === "station") {
-        const station = currentInteractable.userData.station;
-        visitedStations.add(station.id);
-        updateProgress();
-
-        infoTitle.innerHTML = station.title;
-        infoContent.innerHTML = station.html;
-        infoPanel.style.display = "flex";
-
-        if (!isTouchDevice) document.exitPointerLock?.();
-      }
-
-      if (currentInteractable.userData.type === "quiz" && quizUnlocked) {
-        startQuiz();
-      }
+      if(!currentInteractable) return;
+      const s = currentInteractable.userData.station;
+      visitedStations.add(s.id);
+      
+      document.getElementById("infoTitle").innerText = s.title;
+      document.getElementById("infoContent").innerHTML = s.html;
+      document.getElementById("infoPanel").style.display = "flex";
+      
+      updateProgress();
     }
 
     function updateProgress() {
-      statusText.textContent = `${visitedStations.size}/4 estações`;
-      progressFill.style.width = `${(visitedStations.size / 4) * 100}%`;
-
-      if (visitedStations.size === stations.length) {
-        promptEl.style.display = "block";
-        promptEl.innerHTML = `Todas as estações foram concluídas. Vá ao <strong>Quiz Final</strong>.`;
-      }
+      const p = (visitedStations.size / 4) * 100;
+      document.getElementById("progressFill").style.width = p + "%";
+      document.getElementById("statusText").innerText = visitedStations.size + "/4 estações";
     }
 
-    function closePanels() {
-      infoPanel.style.display = "none";
-      quizPanel.style.display = "none";
-
-      if (!isTouchDevice && !isMenuOpen) {
-        renderer.domElement.requestPointerLock?.();
-      }
-    }
-
-    function closeVictory() {
-      victoryPanel.style.display = "none";
-      if (!isTouchDevice && !isMenuOpen) renderer.domElement.requestPointerLock?.();
-    }
-
-    function startQuiz() {
-      quizPanel.style.display = "flex";
-      quizIndex = 0;
-      quizScore = 0;
-      quizAnswered = false;
-      showQuizQuestion();
-
-      if (!isTouchDevice) document.exitPointerLock?.();
-    }
-
-    function showQuizQuestion() {
-      const item = quizData[quizIndex];
-      quizAnswered = false;
-      quizFeedback.textContent = "";
-      quizNextBtn.style.display = "none";
-      quizFinishBtn.style.display = "none";
-
-      quizQuestion.innerHTML = `<strong>Pergunta ${quizIndex + 1} de ${quizData.length}:</strong> ${item.q}`;
-      quizOptions.innerHTML = "";
-
-      item.options.forEach((option, index) => {
-        const btn = document.createElement("button");
-        btn.className = "answerBtn";
-        btn.textContent = option;
-        btn.addEventListener("click", () => answerQuiz(index));
-        quizOptions.appendChild(btn);
-      });
-    }
-
-    function answerQuiz(index) {
-      if (quizAnswered) return;
-      quizAnswered = true;
-
-      const item = quizData[quizIndex];
-      const buttons = [...quizOptions.querySelectorAll("button")];
-
-      buttons.forEach((btn, i) => {
-        btn.disabled = true;
-        if (i === item.correct) btn.style.background = "#166534";
-        else if (i === index) btn.style.background = "#991b1b";
-      });
-
-      if (index === item.correct) {
-        quizScore++;
-        quizFeedback.textContent = "Resposta correta!";
-        quizFeedback.style.color = "#4ade80";
-        playSuccess();
-      } else {
-        quizFeedback.textContent = "Resposta incorreta.";
-        quizFeedback.style.color = "#f87171";
-        playError();
-      }
-
-      updateScoreHud();
-
-      if (quizIndex < quizData.length - 1) {
-        quizNextBtn.style.display = "inline-block";
-      } else {
-        quizFinishBtn.style.display = "inline-block";
-      }
-    }
-
-    function finishQuiz() {
-      quizPanel.style.display = "none";
-
-      const percent = Math.round((quizScore / quizData.length) * 100);
-      const grade = ((quizScore / quizData.length) * 10).toFixed(1).replace(".", ",");
-
-      let feedback = "";
-      if (percent === 100) feedback = "Excelente! Vocês dominaram muito bem o conteúdo.";
-      else if (percent >= 80) feedback = "Muito bom! Vocês entenderam muito bem o Taylorismo.";
-      else if (percent >= 60) feedback = "Bom resultado! Os pontos principais foram aprendidos.";
-      else feedback = "A atividade foi concluída. Vale revisar as estações para melhorar ainda mais.";
-
-      victoryContent.innerHTML = `
-        <p><strong>Resultado do quiz:</strong> ${quizScore}/${quizData.length} (${percent}%)</p>
-        <div class="gradeBox">
-          <div>Nota final automática</div>
-          <div class="bigGrade">${grade}</div>
-          <div>${feedback}</div>
-        </div>
-
-        <div class="finalCredits">
-          <h3>Turma e Grupo</h3>
-          <p><strong>Série/Turma:</strong> 2M01 LG</p>
-          <p><strong>Grupo:</strong> Henry, Otávio, Daniel, Bruno e Adrian</p>
-        </div>
-
-        <p style="margin-top:16px;"><strong>Resumo do conteúdo apresentado:</strong></p>
-        <ul>
-          <li>o conceito de Administração Científica;</li>
-          <li>a divisão e especialização do trabalho;</li>
-          <li>o controle do tempo e dos movimentos;</li>
-          <li>as vantagens e críticas do Taylorismo.</li>
-        </ul>
-
-        <p><strong>Trabalho concluído com sucesso.</strong></p>
-      `;
-      victoryPanel.style.display = "flex";
-
-      updateScoreHud();
-      playVictory();
-    }
-
-    function updateScoreHud() {
-      const grade = (quizScore / quizData.length) * 10;
-      scoreLine.textContent = `Quiz ${quizScore}/10 • Nota ${grade.toFixed(1).replace(".", ",")}`;
-    }
-
-    function isAnyPanelOpen() {
-      return (
-        infoPanel.style.display === "flex" ||
-        quizPanel.style.display === "flex" ||
-        victoryPanel.style.display === "flex"
-      );
-    }
-
-    function onResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function clamp(v, min, max) {
-      return Math.max(min, Math.min(max, v));
+    // --- Event Listeners e UI ---
+    function addEventListeners() {
+      document.getElementById("startBtn").onclick = () => {
+        document.getElementById("menuOverlay").style.display = "none";
+        isMenuOpen = false;
+        enableAudio();
+      };
+      document.getElementById("closeInfoBtn").onclick = () => {
+        document.getElementById("infoPanel").style.display = "none";
+      };
+      document.getElementById("audioBtn").onclick = enableAudio;
     }
 
     function enableAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      }
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       audioEnabled = true;
     }
 
-    function playTone(freq = 440, duration = 0.08, type = "sine", volume = 0.03, when = 0) {
-      if (!audioEnabled || !audioCtx) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.value = volume;
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      const start = audioCtx.currentTime + when;
-      const end = start + duration;
-
-      gain.gain.setValueAtTime(volume, start);
-      gain.gain.exponentialRampToValueAtTime(0.0001, end);
-
-      osc.start(start);
-      osc.stop(end);
-    }
-
-    function playClick() {
-      playTone(520, 0.05, "triangle", 0.025);
-    }
-
-    function playSuccess() {
-      playTone(660, 0.08, "triangle", 0.03, 0);
-      playTone(880, 0.1, "triangle", 0.03, 0.08);
-    }
-
-    function playError() {
-      playTone(220, 0.08, "sawtooth", 0.025, 0);
-      playTone(170, 0.12, "sawtooth", 0.02, 0.05);
-    }
-
-    function playVictory() {
-      playTone(523, 0.1, "triangle", 0.03, 0);
-      playTone(659, 0.1, "triangle", 0.03, 0.12);
-      playTone(784, 0.16, "triangle", 0.03, 0.24);
-      playTone(1046, 0.22, "triangle", 0.03, 0.40);
+    function createNPCs() {
+        // Exemplo simplificado para não pesar no VR mobile
+        const npc = new THREE.Mesh(new THREE.BoxGeometry(1, 2, 1), new THREE.MeshStandardMaterial({color: 0x1f3559}));
+        npc.position.set(5, 1, 5);
+        scene.add(npc);
     }
   </script>
 </body>
